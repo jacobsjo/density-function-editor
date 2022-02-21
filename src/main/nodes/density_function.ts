@@ -1,4 +1,5 @@
-import { IContextMenuItem, IWidget, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
+import { IContextMenuItem, INodeInputSlot, IWidget, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
+import { MenuManager } from "../UI/MenuManager";
 
 const spline_values = ["offset", "factor", "jaggedness"]
 const sampler_types = ["type_1", "type_2"]
@@ -37,6 +38,23 @@ export class DensityFunction extends LGraphNode{
         this.addOutput("output","densityFunction", {locked: true, nameLocked: true});
         this.title = name.replace("minecraft:", "")
         this.color = "#000033"
+    }
+
+    onPropertyChanged() {
+        MenuManager.setEdited()
+        return false
+    }
+
+    onConnectionsChange(){
+        MenuManager.setEdited()
+    }
+
+    onAdded(){
+        MenuManager.setEdited()
+    }
+
+    onRemoved(){
+        MenuManager.setEdited()
     }
 
     public updateWidgets(){

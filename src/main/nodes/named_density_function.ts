@@ -1,4 +1,5 @@
 import { IContextMenuItem, IWidget, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
+import { MenuManager } from "../UI/MenuManager";
 
 export class NamedDensityFunction extends LGraphNode{
     static title = "Named Density Function"
@@ -28,6 +29,23 @@ export class NamedDensityFunction extends LGraphNode{
         }
         return this.title;
     };
+
+    onPropertyChanged() {
+        MenuManager.setEdited()
+        return false
+    }
+
+    onConnectionsChange(){
+        MenuManager.setEdited()
+    }
+
+    onAdded(){
+        MenuManager.setEdited()
+    }
+
+    onRemoved(){
+        MenuManager.setEdited()
+    }
 
     getMenuOptions(onExecute: LGraphCanvas): IContextMenuItem[]{
         return []

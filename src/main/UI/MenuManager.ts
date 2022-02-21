@@ -5,18 +5,26 @@ export class MenuManager {
     static fileHandle: FileSystemFileHandle
     static fileName: string = "density_function.json"
 
+    static edited: boolean = false
 
     static addHandlers() {
         const save_button = document.getElementById("menu-button-save")
 
         document.getElementById("menu-button-new").onclick = async () => {
+            if (this.edited && !confirm("You have unsaved changes, continue?")){
+                return
+            }
             GraphManager.clear()
             this.fileHandle = undefined
             this.fileName = "density_function.json"
             save_button.classList.add("disabled")
+            this.edited = false
         }
 
         document.getElementById("menu-button-open").onclick = async () => {
+            if (this.edited && !confirm("You have unsaved changes, continue?")){
+                return
+            }
             if ("showOpenFilePicker" in window) {
                 [this.fileHandle] = await window.showOpenFilePicker({
                     types: [
@@ -28,12 +36,18 @@ export class MenuManager {
                         }
                     ]
                 })
-                this.fileName = this.fileHandle.name
 
                 const file = await this.fileHandle.getFile()
                 const jsonString = await file.text()
-                GraphManager.loadJSON(JSON.parse(jsonString))
-                save_button.classList.remove("disabled")
+                if (GraphManager.loadJSON(JSON.parse(jsonString))){
+                    this.fileName = this.fileHandle.name
+                    save_button.classList.remove("disabled")
+                } else {
+                    this.fileHandle = undefined
+                    this.fileName = "density_function.json"
+                    save_button.classList.add("disabled")
+                }
+                this.edited = false
 
             } else {
                 const input = document.createElement('input') as HTMLInputElement
@@ -47,10 +61,14 @@ export class MenuManager {
                     reader.readAsText(file, 'UTF-8')
 
                     reader.onload = (evt: ProgressEvent<FileReader>) => {
-                        this.fileHandle = undefined
-                        this.fileName = file.name
                         const jsonString = evt.target.result as string
-                        GraphManager.loadJSON(JSON.parse(jsonString))
+                        this.fileHandle = undefined
+                        if (GraphManager.loadJSON(JSON.parse(jsonString))){
+                            this.fileName = file.name
+                        } else {
+                            this.fileName = "density_function.json"
+                        }
+                        this.edited = false
                     }
                 }
 
@@ -77,6 +95,7 @@ export class MenuManager {
                 await writable.write(jsonString)
                 await writable.close()
 
+                this.edited = false
                 save_button.classList.remove("disabled")
             } else {
                 const bb = new Blob([jsonString], {type: 'text/plain'})
@@ -84,6 +103,7 @@ export class MenuManager {
                 a.download = this.fileName
                 a.href = window.URL.createObjectURL(bb)
                 a.click()
+                this.edited = false
             }
         }
 
@@ -94,7 +114,12 @@ export class MenuManager {
                 const writable = await this.fileHandle.createWritable()
                 await writable.write(jsonString)
                 await writable.close()
+                this.edited = false
             }
         }        
+    }
+
+    static setEdited(force: boolean = true){
+        this.edited = force
     }
 }

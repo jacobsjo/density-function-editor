@@ -1,4 +1,5 @@
 import { IContextMenuItem, IWidget, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
+import { MenuManager } from "../UI/MenuManager";
 
 export class ConstantDensityFunction extends LGraphNode{
     static title = "constant"
@@ -18,7 +19,25 @@ export class ConstantDensityFunction extends LGraphNode{
         this.wdgt.value = this.properties.value
     }
 
-    getTitle = function() {
+    onPropertyChanged() {
+        MenuManager.setEdited()
+        return false
+    }
+
+    onConnectionsChange(){
+        MenuManager.setEdited()
+    }
+
+    onAdded(){
+        MenuManager.setEdited()
+    }
+
+    onRemoved(){
+        MenuManager.setEdited()
+    }
+
+
+    getTitle() {
         if (this.flags.collapsed) {
             return this.properties.value;
         }
