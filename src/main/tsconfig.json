@@ -1,0 +1,12 @@
+{
+    "extends": "../generic-tsconfig.json",
+    "include": [
+      "../../typings-custom/**/*.ts"
+    ],
+    "references": [
+      {"path": "../multinoiseworker/"}
+    ],
+    "compilerOptions": {
+        "lib": ["esnext", "dom", "webworker"]
+      }
+  }

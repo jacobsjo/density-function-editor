@@ -1,0 +1,56 @@
+body {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    color: white;
+}
+
+#menu {
+    width: 100%;
+    height: 27pt;
+    display: flex;
+    flex-direction: row;
+    background-color: darkblue;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#menu .menu-button{
+    padding: 0 8pt;
+    height: 19pt;
+    margin: 2pt;
+    text-align: center;
+    line-height: 19pt;
+    background-color: rgb(78, 78, 78);
+    border: 2pt solid black;
+    border-radius: 8pt;
+    user-select: none;
+    cursor: pointer;
+}
+
+#menu .menu-button:hover{
+    background-color: rgb(109, 109, 109);
+}
+
+#menu .menu-button:active{
+    background-color: rgb(168, 168, 168);
+}
+
+#menu .menu-button.disabled{
+    background-color: rgb(41, 41, 41);
+    color: rgb(110, 110, 110);
+    cursor: default;
+}
+
+
+
+#mycanvas {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    background-color: rgb(33, 33, 33);
+}
+
