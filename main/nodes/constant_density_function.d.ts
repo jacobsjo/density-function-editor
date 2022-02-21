@@ -4,7 +4,11 @@ export declare class ConstantDensityFunction extends LGraphNode {
     private wdgt;
     constructor();
     updateWidgets(): void;
-    getTitle: () => any;
+    onPropertyChanged(): boolean;
+    onConnectionsChange(): void;
+    onAdded(): void;
+    onRemoved(): void;
+    getTitle(): any;
     getMenuOptions(onExecute: LGraphCanvas): IContextMenuItem[];
     onExecute(): void;
 }

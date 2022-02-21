@@ -5,6 +5,10 @@ export declare class NamedDensityFunction extends LGraphNode {
     constructor();
     updateWidgets(): void;
     getTitle: () => any;
+    onPropertyChanged(): boolean;
+    onConnectionsChange(): void;
+    onAdded(): void;
+    onRemoved(): void;
     getMenuOptions(onExecute: LGraphCanvas): IContextMenuItem[];
     onExecute(): void;
 }
