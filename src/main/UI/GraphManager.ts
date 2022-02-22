@@ -1,7 +1,9 @@
+import { Spline } from "deepslate";
 import { LiteGraph, LGraph, LGraphCanvas, LGraphNode, IContextMenuOptions } from "litegraph.js";
 import { ConstantDensityFunction } from "../nodes/constant_density_function";
 import { DensityFunction } from "../nodes/density_function";
 import { DensityFunctionOutput } from "../nodes/density_function_output";
+import { SplineDensityFunction } from "../nodes/density_function_spline";
 import { NamedDensityFunction } from "../nodes/named_density_function";
 import { registerNodes } from "../nodes/register";
 import { MenuManager } from "./MenuManager";
@@ -33,7 +35,7 @@ export class GraphManager{
         this.output_node = new DensityFunctionOutput(); // not registered as only one exists
         this.output_node.pos = [900,400];
         this.graph.add(this.output_node);
-    
+
         this.graph.start()
     }
 
@@ -76,7 +78,7 @@ export class GraphManager{
             this.output_node = new DensityFunctionOutput(); // not registered as only one exists
             this.graph.add(this.output_node);
 
-            const [n, y] = this.createNodeFromJson(json, [900 - 250, 0])
+            const [n, y] = this.createNodeFromJson(json, [900 - 250, 400])
             
             n.connect(0, this.output_node, 0)
             this.output_node.pos = [900,y/2];
@@ -88,12 +90,11 @@ export class GraphManager{
     }
 
     private static createNodeFromJson(json: any, pos: [number, number]): [LGraphNode, number]{
-        var node: LGraphNode
         if (typeof json === "string"){
             if (json in this.named_nodes && this.named_nodes[json].pos[0] <= pos[0]+400 ){
                 return [this.named_nodes[json], pos[1]]
             } else {
-                node = LiteGraph.createNode("density_function/named");
+                const node = LiteGraph.createNode("density_function/named");
                 node.properties.id = json
                 ;(node as NamedDensityFunction).updateWidgets()
                 node.pos = pos;
@@ -103,39 +104,68 @@ export class GraphManager{
                 return [node, pos[1]+150]
             }
         } else if (typeof json === "number"){
-            node = LiteGraph.createNode("density_function/constant");
+            const node = LiteGraph.createNode("density_function/constant");
             node.properties.value = json
             ;(node as ConstantDensityFunction).updateWidgets()
             node.pos = pos;
             this.graph.add(node);
             node.collapse(false)
             return [node, pos[1]+150]
-
-        } else if (json.type){
-            const density_function_node = LiteGraph.createNode("density_function/" + (json.type.replace("minecraft:", ""))) as DensityFunction
+        } else if (json.type === "minecraft:spline"){
             var y = pos[1]
-            if (density_function_node){
-                for (const property in density_function_node.properties){
+
+            const node = LiteGraph.createNode("density_function/spline") as SplineDensityFunction
+            
+            node.properties.min_value = json.min_value
+            node.properties.max_value = json.max_value
+
+            const locations = []
+            const values = []
+            const derivatives = []
+            for (const point of json.spline.points){
+                if (typeof point.value !== "number"){
+                    alert("Multidimenional Splines are not supported (yet)")
+                    throw Error("Multidimenional Splines are not supported (yet)")
+                }
+                locations.push(point.location)
+                values.push(() => point.value)
+                derivatives.push(point.derivative)
+            }
+
+            node.splineWidget.value = new Spline<number>("spine", (c) => c, locations, values, derivatives);
+
+            node.updateWidgets()
+
+            var n: LGraphNode
+            [n, y] = this.createNodeFromJson(json.spline.coordinate, [pos[0]-250, y])
+            n.connect(0, node, "coordinate")
+            node.pos = [pos[0], (pos[1] + y-150) / 2];
+            this.graph.add(node);
+            return [node,y]
+        } else if (json.type){
+            const node = LiteGraph.createNode("density_function/" + (json.type.replace("minecraft:", ""))) as DensityFunction
+            var y = pos[1]
+            if (node){
+                for (const property in node.properties){
                     if (json[property] !== undefined){
-                        density_function_node.properties[property] = json[property]
+                        node.properties[property] = json[property]
                     } else {
                         console.warn("missing property " + property)
                     }
                 }
-                density_function_node.updateWidgets()
+                node.updateWidgets()
 
-                for (let i = 0 ; i < density_function_node.input_names.length ; i++){
-                    const input = density_function_node.input_names[i]
+                for (let i = 0 ; i < node.input_names.length ; i++){
+                    const input = node.input_names[i]
                     if (json[input] !== undefined){
                         var n: LGraphNode
                         [n, y] = this.createNodeFromJson(json[input], [pos[0]-250, y])
-                        n.connect(0, density_function_node, input)
+                        n.connect(0, node, input)
                     } else {
                         console.warn("missing density function " + input)
                     }
                 }
             }
-            node = density_function_node
             node.pos = [pos[0], (pos[1] + y-150) / 2];
             this.graph.add(node);
             return [node, y]

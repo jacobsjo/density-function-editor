@@ -1,10 +1,11 @@
 import { IContextMenuItem, INodeInputSlot, IWidget, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
 import { MenuManager } from "../UI/MenuManager";
+import { LGraphNodeFixed } from "./LGraphNodeFixed";
 
 const spline_values = ["offset", "factor", "jaggedness"]
 const sampler_types = ["type_1", "type_2"]
 
-export class DensityFunction extends LGraphNode{
+export class DensityFunction extends LGraphNodeFixed{
 
     
 
@@ -22,13 +23,13 @@ export class DensityFunction extends LGraphNode{
                 this.input_names.push(argument)
             } else if (type === "number") {
                 this.addProperty(argument, 0, "number")
-                this.wdgs[argument] = this.addWidget("number", argument, 0, argument)
+                this.wdgs[argument] = this.addWidget("number", argument, 0, (value) => {this.properties[argument] = value})
             } else if (type === "spline") {
                 this.addProperty(argument, 0, "string")
                 this.wdgs[argument] = this.addWidget("combo", argument, "offset", (value) => {this.properties[argument] = value}, {values: spline_values})
             } else if (type === "noise") {
                 this.addProperty(argument, 0, "string")
-                this.wdgs[argument] = this.addWidget("text", argument, "minecraft:", argument)
+                this.wdgs[argument] = this.addWidget("text", argument, "minecraft:", (value) => {this.properties[argument] = value})
             } else if (type === "sampler_type") {
                 this.addProperty(argument, 0, "string")
                 this.wdgs[argument] = this.addWidget("combo", argument, "type_1", (value) => {this.properties[argument] = value}, {values: sampler_types})
@@ -40,31 +41,10 @@ export class DensityFunction extends LGraphNode{
         this.color = "#000033"
     }
 
-    onPropertyChanged() {
-        MenuManager.setEdited()
-        return false
-    }
-
-    onConnectionsChange(){
-        MenuManager.setEdited()
-    }
-
-    onAdded(){
-        MenuManager.setEdited()
-    }
-
-    onRemoved(){
-        MenuManager.setEdited()
-    }
-
     public updateWidgets(){
         for (const property in this.properties){
             this.wdgs[property].value = this.properties[property]
         }
-    }
-
-    getMenuOptions(onExecute: LGraphCanvas): IContextMenuItem[]{
-        return []
     }
 
     onExecute(){

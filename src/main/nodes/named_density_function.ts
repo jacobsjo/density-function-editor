@@ -1,7 +1,8 @@
 import { IContextMenuItem, IWidget, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
 import { MenuManager } from "../UI/MenuManager";
+import { LGraphNodeFixed } from "./LGraphNodeFixed";
 
-export class NamedDensityFunction extends LGraphNode{
+export class NamedDensityFunction extends LGraphNodeFixed{
     static title = "Named Density Function"
 
     private wdgt: IWidget
@@ -10,7 +11,7 @@ export class NamedDensityFunction extends LGraphNode{
         super()
         this.addOutput("output","densityFunction", {locked: true, nameLocked: true});
         this.addProperty("id", "", "string")
-        this.wdgt = this.addWidget("text", "Id", "", "id")
+        this.wdgt = this.addWidget("text", "Id", "", (value) => {this.properties.id = value})
         this.title = "Named Density Function"
         this.color = "#330000"
     }
@@ -29,27 +30,6 @@ export class NamedDensityFunction extends LGraphNode{
         }
         return this.title;
     };
-
-    onPropertyChanged() {
-        MenuManager.setEdited()
-        return false
-    }
-
-    onConnectionsChange(){
-        MenuManager.setEdited()
-    }
-
-    onAdded(){
-        MenuManager.setEdited()
-    }
-
-    onRemoved(){
-        MenuManager.setEdited()
-    }
-
-    getMenuOptions(onExecute: LGraphCanvas): IContextMenuItem[]{
-        return []
-    }
 
     onExecute(){
         this.setOutputData(0, this.properties.id)
