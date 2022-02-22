@@ -9,7 +9,7 @@ export declare class GraphManager {
     };
     static init(): void;
     static clear(): void;
-    static getJSON(): any;
+    static getOutput(): any;
     static loadJSON(json: any): boolean;
     private static createNodeFromJson;
 }

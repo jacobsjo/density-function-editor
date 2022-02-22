@@ -5,6 +5,7 @@ export declare class MenuManager {
     static edited: boolean;
     static save_button: HTMLElement;
     static addHandlers(): void;
+    static getJsonString(): string;
     static save(): Promise<void>;
     static saveAs(): Promise<void>;
     static setEdited(force?: boolean): void;

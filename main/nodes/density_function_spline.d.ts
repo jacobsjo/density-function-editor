@@ -6,6 +6,7 @@ export declare class SplineDensityFunction extends LGraphNodeFixed {
     splineWidget: SplineWidget;
     constructor();
     updateWidgets(): void;
+    onConnectionsChange(): void;
     onExecute(): void;
 }
 //# sourceMappingURL=density_function_spline.d.ts.map
