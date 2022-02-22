@@ -14,6 +14,7 @@ export declare class SplineWidget implements IWidget<Spline<number>> {
     private selected_id;
     private dragging_derivative;
     private last_click_time;
+    private node;
     draw(ctx: CanvasRenderingContext2D, node: LGraphNode, width: number, posY: number, _height: number): void;
     private posToInput;
     private inputToPos;
@@ -21,5 +22,11 @@ export declare class SplineWidget implements IWidget<Spline<number>> {
     private outputToPos;
     mouse(event: MouseEvent, pos: Vector2, node: LGraphNode): boolean;
     computeSize(width: number): [number, number];
+    private expand_timer;
+    private startExpand;
+    private stopExpand;
+    private shrink_timer;
+    private startShrink;
+    private stopShrink;
 }
 //# sourceMappingURL=SplineWidget.d.ts.map
