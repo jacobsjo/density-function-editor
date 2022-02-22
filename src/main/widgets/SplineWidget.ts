@@ -1,10 +1,10 @@
 
 import { Spline } from 'deepslate';
-import { IWidget, LGraphNode, Vector2, WidgetCallback, widgetTypes } from 'litegraph.js'
+import { IWidget, LGraphCanvas, LGraphNode, Vector2, WidgetCallback, widgetTypes } from 'litegraph.js'
 
 export class SplineWidget implements IWidget<Spline<number>>{
     name: string;
-    value: Spline<number> = new Spline<number>("spine", (c) => c, [-1, 0, 1], [() => -1, () => 0, () => 1], [0, 1, 0]);
+    value: Spline<number> = new Spline<number>("spine", (c) => c, [-1, 1], [() => -1, () => 1], [1, 1]);
 
     public min_input: number = -1;
     public max_input: number = 1;
@@ -21,7 +21,10 @@ export class SplineWidget implements IWidget<Spline<number>>{
     private dragging_derivative: boolean = false
     private last_click_time: number = 0 
 
+    private node: LGraphNode
+
     draw(ctx: CanvasRenderingContext2D, node: LGraphNode, width: number, posY: number, _height: number): void {
+        this.node = node
 
         ctx.save()
         width-=20;
@@ -33,6 +36,24 @@ export class SplineWidget implements IWidget<Spline<number>>{
         ctx.clip()
         ctx.fillRect(10, posY, width, width)
 
+        ctx.lineWidth = 0.5
+        ctx.strokeStyle = "gray"
+        for (var location = Math.floor(this.min_input / 2) * 2 ; location <= this.max_input ; location+=0.5){
+            ctx.beginPath()
+            const x = this.inputToPos(location, width)
+            ctx.lineTo(x, posY)
+            ctx.lineTo(x, posY + width)
+            ctx.stroke()
+        }
+        for (var value = Math.floor(this.min_value / 2) * 2 ; value <= this.max_value ; value+=0.5){
+            ctx.beginPath()
+            const y = this.outputToPos(value, width)
+            ctx.lineTo(10, y)
+            ctx.lineTo(10+width, y)
+            ctx.stroke()
+        }
+
+        ctx.lineWidth = 1
         ctx.strokeStyle = "white"
         ctx.beginPath()
         const step = 5
@@ -60,8 +81,20 @@ export class SplineWidget implements IWidget<Spline<number>>{
                 ctx.stroke()
             }
        }
+
+       //ctx.fillText(this.max_value.toFixed(2), 10, posY+12)
+       //ctx.fillText(this.min_value.toFixed(2), 10, posY+width-1)
+
        ctx.restore()
 
+       ctx.fillStyle = "white"
+       ctx.fillText(this.min_input.toFixed(2), 10, posY+width+12)
+       ctx.fillText(this.max_input.toFixed(2), 10+width-ctx.measureText(this.max_input.toFixed(2)).width, posY+width+12)
+       if (this.selected_id >= 0){
+           ctx.fillStyle = "orange"
+           const text = "(" + this.value.locations[this.selected_id].toFixed(2) + ", " + this.value.values[this.selected_id](0).toFixed(2) + ")"
+           ctx.fillText(text, 10+width/2-ctx.measureText(text).width/2, posY+width+12)
+       }
     }
 
     private posToInput(pos: number, width: number){
@@ -93,12 +126,15 @@ export class SplineWidget implements IWidget<Spline<number>>{
                         this.value.locations.splice(i, 1)
                         this.value.values.splice(i, 1)
                         this.value.derivatives.splice(i, 1)
+                        this.dragging_id = -1
+                        this.selected_id = -1
                         return false
                     } else {
                         this.dragging_id = i
                         this.selected_id = i
                         this.dragging_derivative = false
                         this.last_click_time = new Date().getTime()
+                        this.stopShrink()
                         return false
                     }
                 } else if (distance < 1000 && i == this.selected_id){
@@ -108,6 +144,7 @@ export class SplineWidget implements IWidget<Spline<number>>{
                     if (Math.abs(mouse_angle - derivative_angle)<0.1){
                         this.dragging_id = i
                         this.dragging_derivative = true
+                        this.stopShrink()
                         return false
                     }
                 }
@@ -126,6 +163,7 @@ export class SplineWidget implements IWidget<Spline<number>>{
                 this.dragging_id = index
                 this.selected_id = index
                 this.dragging_derivative = false
+                this.stopShrink()
                 return false
             }   
 
@@ -138,6 +176,14 @@ export class SplineWidget implements IWidget<Spline<number>>{
 
                 this.value.derivatives[this.dragging_id] = (y - pos[1])/ (-x + pos[0]) / (this.max_input - this.min_input) * (this.max_value - this.min_value)
             } else {
+                if (pos[0] < 0){
+                    this.startExpand("left")
+                } else if (pos[0] > this.widged_width + 20){
+                    this.startExpand("right")
+                } else {
+                    this.stopExpand()
+                }
+
                 const location = Math.clamp(this.posToInput(pos[0], this.widged_width), this.min_input, this.max_input)
                 const value = Math.clamp(this.posToOutput(pos[1], this.widged_width), this.min_value, this.max_value)
                 const derivative = this.value.derivatives[this.dragging_id]
@@ -167,13 +213,68 @@ export class SplineWidget implements IWidget<Spline<number>>{
             }
             return false
         } else if (event.type === "mouseup"){
+            this.stopExpand()
             this.dragging_id = -1
+            this.startShrink()
         }
 
         return false
     }
 
     computeSize(width: number): [number, number] {
-        return [width, width-20];
+        return [width, width-20+15];
+    }
+
+    private expand_timer: NodeJS.Timer = undefined
+    private startExpand(direction: "left"|"right"){
+        if (!this.expand_timer){
+                this.expand_timer = setInterval(() => {
+                    if (direction === "left"){
+                        this.min_input -= 0.02
+                        this.value.locations[this.dragging_id] = this.min_input
+                    } else {
+                        this.max_input += 0.02
+                        this.value.locations[this.dragging_id] = this.max_input
+                    }
+                    this.node?.setDirtyCanvas(true, false)
+                }, 20)
+        }
+    }
+
+    private stopExpand(){
+        if (this.expand_timer){
+            clearInterval(this.expand_timer)
+            this.expand_timer = undefined
+        }
+    }
+
+    private shrink_timer: NodeJS.Timer = undefined
+    private startShrink(){
+        if (!this.shrink_timer){
+            this.shrink_timer = setInterval(() => {
+                console.log("shrink")
+                var changed = false
+                if (this.min_input < this.value.locations[0]-0.3){
+                    this.min_input += 0.02
+                    changed = true
+                }
+                if (this.max_input > this.value.locations[this.value.locations.length - 1]+0.3){
+                    this.max_input -= 0.02
+                    changed = true
+                }
+                if (!changed){
+                    this.stopShrink()
+                } else {
+                    this.node?.setDirtyCanvas(true, false)
+                }
+            }, 20)
+        }
+    }
+
+    private stopShrink(){
+        if (this.shrink_timer){
+            clearInterval(this.shrink_timer)
+            this.shrink_timer = undefined
+        }
     }
 }
