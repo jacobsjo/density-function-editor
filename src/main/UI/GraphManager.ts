@@ -133,6 +133,8 @@ export class GraphManager{
             }
 
             node.splineWidget.value = new Spline<number>("spine", (c) => c, locations, values, derivatives);
+            node.splineWidget.min_input = locations[0] - 0.1
+            node.splineWidget.max_input = locations[locations.length-1] + 0.1
 
             node.updateWidgets()
 
