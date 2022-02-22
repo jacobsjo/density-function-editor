@@ -252,7 +252,6 @@ export class SplineWidget implements IWidget<Spline<number>>{
     private startShrink(){
         if (!this.shrink_timer){
             this.shrink_timer = setInterval(() => {
-                console.log("shrink")
                 var changed = false
                 if (this.min_input < this.value.locations[0]-0.3){
                     this.min_input += 0.02
