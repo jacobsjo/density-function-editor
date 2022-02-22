@@ -13,7 +13,7 @@ export class ConstantDensityFunction extends LGraphNodeFixed{
         this.addProperty("value", 0, "number")
         this.wdgt = this.addWidget("number", "Value", 0, (value) => {this.properties.value = value})
         this.title = "Constant"
-        this.color = "#003333"
+        this.color = "#000033"
     }
 
     public updateWidgets() {
@@ -28,7 +28,10 @@ export class ConstantDensityFunction extends LGraphNodeFixed{
     };
 
     onExecute(){
-        this.setOutputData(0, this.properties.value)
+        this.setOutputData(0, {
+            json:this.properties.value,
+            error:false
+        })
     }
 }
 

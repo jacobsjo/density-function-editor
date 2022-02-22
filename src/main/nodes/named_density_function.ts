@@ -13,7 +13,7 @@ export class NamedDensityFunction extends LGraphNodeFixed{
         this.addProperty("id", "", "string")
         this.wdgt = this.addWidget("text", "Id", "", (value) => {this.properties.id = value})
         this.title = "Named Density Function"
-        this.color = "#330000"
+        this.color = "#003300"
     }
 
     public updateWidgets() {
@@ -32,7 +32,10 @@ export class NamedDensityFunction extends LGraphNodeFixed{
     };
 
     onExecute(){
-        this.setOutputData(0, this.properties.id)
+        this.setOutputData(0, {
+            json: this.properties.id,
+            error: false
+        })
     }
 }
 

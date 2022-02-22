@@ -60,9 +60,9 @@ export class GraphManager {
         this.graph.runStep()
     }
 
-    static getJSON(): any {
+    static getOutput(): any {
         this.graph.runStep()
-        return this.output_node.getInputDataByName("result") ?? {}
+        return this.output_node.getInputDataByName("result") ?? {json:{}, error: true}
     }
 
     static loadJSON(json: any): boolean {

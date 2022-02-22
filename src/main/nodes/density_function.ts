@@ -38,7 +38,7 @@ export class DensityFunction extends LGraphNodeFixed{
 
         this.addOutput("output","densityFunction", {locked: true, nameLocked: true});
         this.title = name.replace("minecraft:", "")
-        this.color = "#000033"
+        this.color = this.inputs.length > 0 ? "#330000" : "#000033"
     }
 
     public updateWidgets(){
@@ -47,10 +47,29 @@ export class DensityFunction extends LGraphNodeFixed{
         }
     }
 
+    onConnectionsChange(){
+        this.color = this.inputs.filter(i => !i.link).length > 0 ? "#330000" : "#000033"
+    }
+
     onExecute(){
+        this.onConnectionsChange()
         const inputs: Record<string, any> = {};
-        this.input_names.forEach((input) => inputs[input] = this.getInputDataByName(input))
-        this.setOutputData(0, {type: this.name, ...this.properties, ...inputs})
+        var error = false
+        var input_has_error = false
+        this.input_names.forEach((input) => {
+            const i = this.getInputDataByName(input)
+            if (i === undefined){
+                error = true
+            } else {
+                inputs[input] = i.json
+                input_has_error ||= i.error
+            }
+        })
+
+        this.setOutputData(0, {
+            json: {type: this.name, ...this.properties, ...inputs},
+            error: error || input_has_error
+        })
     }
 }
 

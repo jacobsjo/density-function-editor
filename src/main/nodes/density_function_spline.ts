@@ -32,7 +32,7 @@ export class SplineDensityFunction extends LGraphNodeFixed{
         })
 
         this.title = "spline"
-        this.color = "#000033"
+        this.color = "#330000"
     }
 
     public updateWidgets(){
@@ -40,6 +40,10 @@ export class SplineDensityFunction extends LGraphNodeFixed{
         this.wdgs.max_value.value = this.properties.max_value
         this.splineWidget.min_value = this.properties.min_value
         this.splineWidget.max_value = this.properties.max_value
+    }
+
+    onConnectionsChange(){
+        this.color = !this.inputs[0].link ? "#330000" : "#000033"
     }
 
     onExecute(){
@@ -53,14 +57,21 @@ export class SplineDensityFunction extends LGraphNodeFixed{
             })
         }
 
+        const input = this.getInputDataByName("coordinate")
+
+        const error = (input === undefined || input.error)
+
         this.setOutputData(0, {
-            type: "minecraft:spline",
-            min_value: this.properties.min_value,
-            max_value: this.properties.max_value,
-            spline: {
-                coordinate: this.getInputDataByName("coordinate"),
-                points: points
-            }
+            json: {
+                type: "minecraft:spline",
+                min_value: this.properties.min_value,
+                max_value: this.properties.max_value,
+                spline: {
+                    coordinate: input.json,
+                    points: points
+                }
+            },
+            error: error
         })
     }
 }

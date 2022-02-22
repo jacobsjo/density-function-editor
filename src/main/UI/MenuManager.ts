@@ -87,9 +87,21 @@ export class MenuManager {
         }        
     }
 
+    static getJsonString(){
+        const output = GraphManager.getOutput()
+        if (output.error && !confirm("Some nodes have unconnected inputs, the resulting JSON will be invalid. Continue?")){
+            return undefined
+        } else {
+            const jsonString = JSON.stringify(output.json, null, 2)
+            return jsonString
+        }
+    }
+
     static async save(){
         if (this.fileHandle){
-            const jsonString = JSON.stringify(GraphManager.getJSON(), null, 2)
+            const jsonString = this.getJsonString()
+            if (jsonString === undefined)
+                return
 
             const writable = await this.fileHandle.createWritable()
             await writable.write(jsonString)
@@ -101,7 +113,9 @@ export class MenuManager {
     }
 
     static async saveAs(){
-        const jsonString = JSON.stringify(GraphManager.getJSON(), null, 2)
+        const jsonString = this.getJsonString()
+        if (jsonString === undefined)
+            return
         if ("showSaveFilePicker" in window){
             this.fileHandle = await window.showSaveFilePicker(
                 {types: [
