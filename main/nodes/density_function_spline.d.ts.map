@@ -1,0 +1,1 @@
+{"version":3,"file":"density_function_spline.d.ts","sourceRoot":"","sources":["../../../src/main/nodes/density_function_spline.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,YAAY,EAAE,MAAM,yBAAyB,CAAC;AACvD,OAAO,EAAE,eAAe,EAAE,MAAM,mBAAmB,CAAC;AAKpD,qBAAa,qBAAsB,SAAQ,eAAe;IAEtD,MAAM,CAAC,KAAK,SAAW;IAGvB,OAAO,CAAC,IAAI,CAA+B;IACpC,YAAY,EAAE,YAAY,CAAA;;IAuB1B,aAAa;IAOpB,SAAS;CAqBZ"}
