@@ -1,3 +1,4 @@
+import { DensityFunction } from "deepslate";
 import { IContextMenuItem, INodeInputSlot, IWidget, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
 import { MenuManager } from "../UI/MenuManager";
 import { LGraphNodeFixed } from "./LGraphNodeFixed";
@@ -5,7 +6,7 @@ import { LGraphNodeFixed } from "./LGraphNodeFixed";
 const spline_values = ["offset", "factor", "jaggedness"]
 const sampler_types = ["type_1", "type_2"]
 
-export class DensityFunction extends LGraphNodeFixed{
+export class DensityFunctionNode extends LGraphNodeFixed{
 
     
 
@@ -53,22 +54,26 @@ export class DensityFunction extends LGraphNodeFixed{
 
     onExecute(){
         this.onConnectionsChange()
-        const inputs: Record<string, any> = {};
+        const input_jsons: Record<string, unknown> = {};
+        const input_dfs: Record<string, DensityFunction> = {};
         var error = false
         var input_has_error = false
         this.input_names.forEach((input) => {
             const i = this.getInputDataByName(input)
             if (i === undefined){
                 error = true
+                input_dfs[input] = DensityFunction.Constant.ZERO
             } else {
-                inputs[input] = i.json
+                input_jsons[input] = i.json
+                input_dfs[input] = i.df
                 input_has_error ||= i.error
             }
         })
 
         this.setOutputData(0, {
-            json: {type: this.name, ...this.properties, ...inputs},
-            error: error || input_has_error
+            json: {type: this.name, ...this.properties, ...input_jsons},
+            error: error || input_has_error,
+            df: DensityFunction.create({type: this.name, ...this.properties, ...input_dfs}, (obj) => obj as DensityFunction)
         })
     }
 }

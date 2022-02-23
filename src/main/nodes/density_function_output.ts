@@ -1,7 +1,7 @@
 import { IContextMenuItem, INodeInputSlot, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
 import { GraphManager } from "../UI/GraphManager";
 
-export class DensityFunctionOutput extends LGraphNode{
+export class DensityFunctionOutputNode extends LGraphNode{
     static title = "Output"
     removable: boolean;
     clonable: boolean;

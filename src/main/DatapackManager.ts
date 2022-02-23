@@ -1,3 +1,4 @@
+import { DensityFunction, Identifier, NoiseParameters, WorldgenRegistries } from "deepslate";
 import { IContextMenuItem } from "litegraph.js";
 import { Datapack } from "mc-datapack-loader";
 import { GraphManager } from "./UI/GraphManager";
@@ -7,17 +8,28 @@ import { noise_router_fields } from "./vanilla/schemas";
 export class DatapackManager{
     static datapack: Datapack
     static density_functions: string[]
+    static noises: string[]
     static noise_settings: string[]
 
-    static openDatapack(datapack: Datapack){
+    static async openDatapack(datapack: Datapack){
         this.datapack = datapack
-        this.datapack.getIds("worldgen/density_function").then(v => this.density_functions = v)
-        this.datapack.getIds("worldgen/noise_settings").then(v => this.noise_settings = v)
+        this.density_functions = await this.datapack.getIds("worldgen/density_function")
+        this.noise_settings = await this.datapack.getIds("worldgen/noise_settings")
+        this.noises = await this.datapack.getIds("worldgen/noise")
 
+        await this.reload()
     }
 
-    static reload(){
-        
+    static async reload(){
+        for (const df of this.density_functions){
+            const json = await this.datapack.get("worldgen/density_function", df)
+            WorldgenRegistries.DENSITY_FUNCTION.register(Identifier.parse(df), DensityFunction.fromJson(json))
+        }
+
+        for (const n of this.noises){
+            const [namespace, path] = n.split(":", 2)
+            WorldgenRegistries.NOISE.register(Identifier.parse(n), NoiseParameters.fromJson(this.datapack.get("worldgen/noise", n)))
+        }
     }
 
     static closeDatapacks(){

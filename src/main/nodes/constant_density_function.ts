@@ -1,8 +1,9 @@
+import { DensityFunction } from "deepslate";
 import { IContextMenuItem, IWidget, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
 import { MenuManager } from "../UI/MenuManager";
 import { LGraphNodeFixed } from "./LGraphNodeFixed";
 
-export class ConstantDensityFunction extends LGraphNodeFixed{
+export class ConstantDensityFunctionNode extends LGraphNodeFixed{
     static title = "constant"
 
     private wdgt: IWidget
@@ -29,8 +30,9 @@ export class ConstantDensityFunction extends LGraphNodeFixed{
 
     onExecute(){
         this.setOutputData(0, {
-            json:this.properties.value,
-            error:false
+            json: this.properties.value,
+            error: false,
+            df: new DensityFunction.Constant(this.properties.value)
         })
     }
 }

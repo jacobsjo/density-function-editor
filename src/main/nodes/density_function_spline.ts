@@ -1,3 +1,4 @@
+import { CubicSpline, DensityFunction } from "deepslate";
 import { IContextMenuItem, INodeInputSlot, IWidget, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
 import { MenuManager } from "../UI/MenuManager";
 import { SplineWidget } from "../widgets/SplineWidget";
@@ -6,7 +7,7 @@ import { LGraphNodeFixed } from "./LGraphNodeFixed";
 const spline_values = ["offset", "factor", "jaggedness"]
 const sampler_types = ["type_1", "type_2"]
 
-export class SplineDensityFunction extends LGraphNodeFixed{
+export class SplineDensityFunctionNode extends LGraphNodeFixed{
 
     static title = "spline"
     
@@ -71,7 +72,13 @@ export class SplineDensityFunction extends LGraphNodeFixed{
                     points: points
                 }
             },
-            error: error
+            error: error,
+            df: (input && input.df !== undefined) ? new DensityFunction.Spline(
+                    new CubicSpline.MultiPoint<DensityFunction.Context>(
+                        input, this.splineWidget.value.locations, this.splineWidget.value.values as CubicSpline.Constant[], this.splineWidget.value.derivatives),
+                    this.properties.min_value,
+                    this.properties.max_value)
+                : DensityFunction.Constant.ZERO
         })
     }
 }

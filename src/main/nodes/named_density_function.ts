@@ -1,10 +1,11 @@
+import { DensityFunction, Holder, Identifier, WorldgenRegistries } from "deepslate";
 import { IContextMenuItem, IWidget, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
 import { DatapackManager } from "../DatapackManager";
 import { GraphManager } from "../UI/GraphManager";
 import { MenuManager } from "../UI/MenuManager";
 import { LGraphNodeFixed } from "./LGraphNodeFixed";
 
-export class NamedDensityFunction extends LGraphNodeFixed{
+export class NamedDensityFunctionNode extends LGraphNodeFixed{
     static title = "Named Density Function"
 
     private wdgt: IWidget
@@ -35,7 +36,7 @@ export class NamedDensityFunction extends LGraphNodeFixed{
     public updateWidgets() {
         this.wdgt.value = this.properties.id
         if (GraphManager.is_part_of_datapack){
-            DatapackManager.datapack.has("worldgen/density_function", this.properties.id).then(b => this.color = b ? "#000033" : "#330000")
+            this.color = DatapackManager.density_functions.includes(this.properties.id) ? "#000033" : "#330000"
         }
 }
 
@@ -53,7 +54,8 @@ export class NamedDensityFunction extends LGraphNodeFixed{
     onExecute(){
         this.setOutputData(0, {
             json: this.properties.id,
-            error: false
+            error: false,
+            df: DatapackManager.density_functions.includes(this.properties.id) ? new DensityFunction.HolderHolder(Holder.reference(WorldgenRegistries.DENSITY_FUNCTION, Identifier.parse(this.properties.id))) : DensityFunction.Constant.ZERO
         })
     }
 }

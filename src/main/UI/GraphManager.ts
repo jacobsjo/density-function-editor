@@ -1,11 +1,11 @@
-import { CubicSpline } from "deepslate";
+import { CubicSpline, DensityFunction } from "deepslate";
 import { LiteGraph, LGraph, LGraphCanvas, LGraphNode, IContextMenuOptions } from "litegraph.js";
 import { DatapackManager } from "../DatapackManager";
-import { ConstantDensityFunction } from "../nodes/constant_density_function";
-import { DensityFunction } from "../nodes/density_function";
-import { DensityFunctionOutput } from "../nodes/density_function_output";
-import { SplineDensityFunction } from "../nodes/density_function_spline";
-import { NamedDensityFunction } from "../nodes/named_density_function";
+import { ConstantDensityFunctionNode } from "../nodes/constant_density_function";
+import { DensityFunctionNode } from "../nodes/density_function";
+import { DensityFunctionOutputNode } from "../nodes/density_function_output";
+import { SplineDensityFunctionNode } from "../nodes/density_function_spline";
+import { NamedDensityFunctionNode } from "../nodes/named_density_function";
 import { registerNodes } from "../nodes/register";
 import { IdentityNumberFunction } from "../util";
 import { MenuManager } from "./MenuManager";
@@ -15,7 +15,7 @@ export class GraphManager {
     static graph: LGraph
     static canvas: LGraphCanvas
 
-    static named_nodes: { [key: string]: NamedDensityFunction }
+    static named_nodes: { [key: string]: NamedDensityFunctionNode }
 
     static has_change: boolean = false
 
@@ -43,7 +43,7 @@ export class GraphManager {
 
         this.canvas.onShowNodePanel = (n) => { }
 
-        this.output_node = new DensityFunctionOutput(); // not registered as only one exists
+        this.output_node = new DensityFunctionOutputNode(); // not registered as only one exists
         this.output_node.pos = [900, 400];
         this.graph.add(this.output_node);
 
@@ -88,7 +88,7 @@ export class GraphManager {
         this.graph.clear()
         this.named_nodes = {}
 
-        this.output_node = new DensityFunctionOutput(); // not registered as only one exists
+        this.output_node = new DensityFunctionOutputNode(); // not registered as only one exists
         this.output_node.pos = [900, 400];
         this.graph.add(this.output_node);
 
@@ -100,13 +100,14 @@ export class GraphManager {
         this.save = save_function
     }
 
-    static getOutput(): {json: unknown, error: boolean} {
+    static getOutput(): {json: unknown, error: boolean, df: DensityFunction} {
         this.graph.runStep()
-        return this.output_node.getInputDataByName("result") ?? { json: {}, error: true }
+        return this.output_node.getInputDataByName("result") ?? { json: {}, error: true, df: DensityFunction.Constant.ZERO }
     }
 
     static getJsonString() {
         const output = this.getOutput()
+        console.log(output.df)
         if (output.error && !confirm("Some nodes have unconnected inputs, the resulting JSON will be invalid. Continue?")) {
             return undefined
         } else {
@@ -132,7 +133,7 @@ export class GraphManager {
         this.graph.clear()
         this.named_nodes = {}
 
-        this.output_node = new DensityFunctionOutput(); // not registered as only one exists
+        this.output_node = new DensityFunctionOutputNode(); // not registered as only one exists
         this.graph.add(this.output_node);
 
         try{
@@ -157,17 +158,17 @@ export class GraphManager {
             } else {
                 const node = LiteGraph.createNode("density_function/named");
                 node.properties.id = json
-                    ; (node as NamedDensityFunction).updateWidgets()
+                    ; (node as NamedDensityFunctionNode).updateWidgets()
                 node.pos = pos;
                 this.graph.add(node);
                 node.collapse(false)
-                this.named_nodes[json] = (node as NamedDensityFunction)
+                this.named_nodes[json] = (node as NamedDensityFunctionNode)
                 return [node, pos[1] + 150]
             }
         } else if (typeof json === "number") {
             const node = LiteGraph.createNode("density_function/constant");
             node.properties.value = json
-                ; (node as ConstantDensityFunction).updateWidgets()
+                ; (node as ConstantDensityFunctionNode).updateWidgets()
             node.pos = pos;
             this.graph.add(node);
             node.collapse(false)
@@ -175,7 +176,7 @@ export class GraphManager {
         } else if (json.type === "minecraft:spline") {
             var y = pos[1]
 
-            const node = LiteGraph.createNode("density_function/spline") as SplineDensityFunction
+            const node = LiteGraph.createNode("density_function/spline") as SplineDensityFunctionNode
 
             node.properties.min_value = json.min_value
             node.properties.max_value = json.max_value
@@ -206,7 +207,7 @@ export class GraphManager {
             this.graph.add(node);
             return [node, y]
         } else if (json.type) {
-            const node = LiteGraph.createNode("density_function/" + (json.type.replace("minecraft:", ""))) as DensityFunction
+            const node = LiteGraph.createNode("density_function/" + (json.type.replace("minecraft:", ""))) as DensityFunctionNode
             var y = pos[1]
             if (node) {
                 for (const property in node.properties) {
