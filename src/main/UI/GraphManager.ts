@@ -1,5 +1,6 @@
 import { Spline } from "deepslate";
 import { LiteGraph, LGraph, LGraphCanvas, LGraphNode, IContextMenuOptions } from "litegraph.js";
+import { DatapackManager } from "../DatapackManager";
 import { ConstantDensityFunction } from "../nodes/constant_density_function";
 import { DensityFunction } from "../nodes/density_function";
 import { DensityFunctionOutput } from "../nodes/density_function_output";
@@ -14,6 +15,15 @@ export class GraphManager {
     static canvas: LGraphCanvas
 
     static named_nodes: { [key: string]: NamedDensityFunction }
+
+    static has_change: boolean = false
+
+    static is_part_of_datapack: boolean = false
+    static id: string 
+
+    static oldJson: unknown = {}
+
+    static save: (jsonString: string) => Promise<boolean> = async () => false
 
     static init() {
         LiteGraph.clearRegisteredTypes() // don't use default node types
@@ -47,9 +57,33 @@ export class GraphManager {
                 this.canvas.processKey(ev)
             }
         }
+
+        this.canvas.getExtraMenuOptions = () => {
+            return [{
+                content: "Open",
+                title: "Open",
+                has_submenu: true,
+                submenu: {
+                    options: DatapackManager.getMenuOptions()
+                }
+            }]
+        }
+
+        this.graph.beforeChange = (_info?: LGraphNode) => {
+            this.has_change = true
+        }
     }
 
-    static clear() {
+    static hasChanged(){
+        this.graph.runStep()
+        return (JSON.stringify(this.getOutput().json) !== JSON.stringify(this.oldJson))
+    }
+
+    static clear(id?: string, save_function: (jsonString: string) => Promise<boolean> = async () => false) {
+        if (this.hasChanged() && !confirm("You have unsaved changes. Continue?")){
+            return
+        }
+
         this.graph.clear()
         this.named_nodes = {}
 
@@ -58,45 +92,61 @@ export class GraphManager {
         this.graph.add(this.output_node);
 
         this.graph.runStep()
+        this.has_change = false
+        this.is_part_of_datapack = DatapackManager.datapack !== undefined
+        this.id = id
+        this.oldJson = {}
+        this.save = save_function
     }
 
-    static getOutput(): any {
+    static getOutput(): {json: unknown, error: boolean} {
         this.graph.runStep()
-        return this.output_node.getInputDataByName("result") ?? {json:{}, error: true}
+        return this.output_node.getInputDataByName("result") ?? { json: {}, error: true }
     }
 
-    static loadJSON(json: any): boolean {
-        if (json.noise_router !== undefined) {
-            var menu_info: any = []
-            Object.keys(json.noise_router).forEach((element) => menu_info.push({
-                content: element,
-                callback: () => {
-                    this.loadJSON(json.noise_router[element])
-                    MenuManager.fileName = element + ".json"
-                }
-            }))
-            const options = { top: 200, left: 200 }
-            const e = console.error
-            console.error = () => { }
-            var menu = new LiteGraph.ContextMenu(menu_info, options as IContextMenuOptions, this.canvas.getCanvasWindow());
-            console.error = e
-            return false
+    static getJsonString() {
+        const output = this.getOutput()
+        if (output.error && !confirm("Some nodes have unconnected inputs, the resulting JSON will be invalid. Continue?")) {
+            return undefined
         } else {
-            this.graph.clear()
-            this.named_nodes = {}
+            const jsonString = JSON.stringify(output.json, null, 2)
+            return jsonString
+        }
+    }
 
-            this.output_node = new DensityFunctionOutput(); // not registered as only one exists
-            this.graph.add(this.output_node);
+    static setSaved(){
+        this.has_change = false
+        this.oldJson = this.getOutput().json
+    }
 
+    static loadJSON(json: any, save_function: (jsonString: string) => Promise<boolean> = async () => false, id?: string, from_datapack: boolean = false): boolean {
+        if (this.hasChanged() && !confirm("You have unsaved changes. Continue?")){
+            return
+        }
+
+        this.save = save_function
+        this.id = id
+        this.is_part_of_datapack = from_datapack
+
+        this.graph.clear()
+        this.named_nodes = {}
+
+        this.output_node = new DensityFunctionOutput(); // not registered as only one exists
+        this.graph.add(this.output_node);
+
+        try{
             const [n, y] = this.createNodeFromJson(json, [900 - 250, 400])
-
             n.connect(0, this.output_node, 0)
             this.output_node.pos = [900, y / 2];
-
-            this.graph.runStep()
-            MenuManager.setEdited(false)
-            return true
+        } catch (e) {
+            console.warn(e)
+            this.output_node.pos = [900, 400];
         }
+
+        this.graph.runStep()
+        this.has_change = false
+        this.oldJson = this.getOutput().json
+        return true
     }
 
     private static createNodeFromJson(json: any, pos: [number, number]): [LGraphNode, number] {

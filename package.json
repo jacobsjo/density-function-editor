@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "deepslate": "0.9.0-beta.2",
-    "litegraph.js": "^0.7.10"
+    "litegraph.js": "^0.7.10",
+    "mc-datapack-loader": "0.1.0"
   }
 }

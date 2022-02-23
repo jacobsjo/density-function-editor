@@ -1,33 +1,73 @@
 import { GraphManager } from "./GraphManager"
+import { Datapack, FileListDatapack, FileSystemDirectoryDatapack } from 'mc-datapack-loader'
+import { DatapackManager } from "../DatapackManager"
+import { IContextMenuOptions, LiteGraph } from "litegraph.js"
 
 export class MenuManager {
-
-    static fileHandle: FileSystemFileHandle
-    static fileName: string = "density_function.json"
-
-    static edited: boolean = false
     static save_button: HTMLElement
 
     static addHandlers() {
         this.save_button = document.getElementById("menu-button-save")
 
         document.getElementById("menu-button-new").onclick = async () => {
-            if (this.edited && !confirm("You have unsaved changes, continue?")){
-                return
+            if (DatapackManager.datapack !== undefined){
+                const id = prompt("Create density function with id", "minecraft:")
+                GraphManager.clear(id, (jsonString) => {
+                    return DatapackManager.datapackSave(jsonString, id)
+                })
+            } else {
+                GraphManager.clear()
             }
-            GraphManager.clear()
-            this.fileHandle = undefined
-            this.fileName = "density_function.json"
-            this.save_button.classList.add("disabled")
-            this.edited = false
         }
 
-        document.getElementById("menu-button-open").onclick = async () => {
-            if (this.edited && !confirm("You have unsaved changes, continue?")){
-                return
+        document.getElementById("menu-button-open-datapack").onclick = async () => {
+            var datapack: Datapack
+
+            if ("showDirectoryPicker" in window) {
+                datapack = new FileSystemDirectoryDatapack(await window.showDirectoryPicker())
+            } else {
+                datapack = await new Promise<Datapack>((resolve) => {
+                    const input: any = document.createElement('input')
+                    input.type = 'file'
+                    input.webkitdirectory = true
+
+                    input.onchange = async () => {
+                        resolve(new FileListDatapack(Array.from(input.files)))
+                    }
+                    input.click()
+                })
             }
+
+            DatapackManager.openDatapack(datapack)
+
+        }
+
+        const load = (jsonString: string, save_function?: (jsonString: string) => Promise<boolean>) => {
+            const json = JSON.parse(jsonString)
+
+            if (json.noise_router !== undefined) {
+                var menu_info: any = []
+                Object.keys(json.noise_router).forEach((element) => menu_info.push({
+                    content: element,
+                    callback: () => {
+                        GraphManager.loadJSON(json.noise_router[element])
+                        DatapackManager.closeDatapacks()
+                    }
+                }))
+                const options = { top: 200, left: 200 }
+                const e = console.error
+                console.error = () => { }
+                var menu = new LiteGraph.ContextMenu(menu_info, options as IContextMenuOptions, GraphManager.canvas.getCanvasWindow());
+                console.error = e
+            } else {
+                GraphManager.loadJSON(json, save_function)
+                DatapackManager.closeDatapacks()
+            }
+        }
+
+        document.getElementById("menu-button-open-file").onclick = async () => {
             if ("showOpenFilePicker" in window) {
-                [this.fileHandle] = await window.showOpenFilePicker({
+                const [fileHandle] = await window.showOpenFilePicker({
                     types: [
                         {
                             description: "All JSON files",
@@ -38,18 +78,14 @@ export class MenuManager {
                     ]
                 })
 
-                const file = await this.fileHandle.getFile()
+                const file = await fileHandle.getFile()
                 const jsonString = await file.text()
-                if (GraphManager.loadJSON(JSON.parse(jsonString))){
-                    this.fileName = this.fileHandle.name
-                    this.save_button.classList.remove("disabled")
-                } else {
-                    this.fileHandle = undefined
-                    this.fileName = "density_function.json"
-                    this.save_button.classList.add("disabled")
-                }
-                this.edited = false
-
+                load(jsonString, async (jsonString: string) => {
+                    const writable = await fileHandle.createWritable()
+                    await writable.write(jsonString)
+                    await writable.close()
+                    return true
+                })
             } else {
                 const input = document.createElement('input') as HTMLInputElement
                 input.type = 'file'
@@ -63,13 +99,7 @@ export class MenuManager {
 
                     reader.onload = (evt: ProgressEvent<FileReader>) => {
                         const jsonString = evt.target.result as string
-                        this.fileHandle = undefined
-                        if (GraphManager.loadJSON(JSON.parse(jsonString))){
-                            this.fileName = file.name
-                        } else {
-                            this.fileName = "density_function.json"
-                        }
-                        this.edited = false
+                        load(jsonString)
                     }
                 }
 
@@ -78,73 +108,52 @@ export class MenuManager {
 
         }
 
-        document.getElementById("menu-button-save-as").onclick = async () =>{
+        document.getElementById("menu-button-save-as").onclick = async () => {
             await this.saveAs()
         }
 
         this.save_button.onclick = async () => {
             await this.save()
-        }        
-    }
-
-    static getJsonString(){
-        const output = GraphManager.getOutput()
-        if (output.error && !confirm("Some nodes have unconnected inputs, the resulting JSON will be invalid. Continue?")){
-            return undefined
-        } else {
-            const jsonString = JSON.stringify(output.json, null, 2)
-            return jsonString
         }
     }
 
-    static async save(){
-        if (this.fileHandle){
-            const jsonString = this.getJsonString()
-            if (jsonString === undefined)
-                return
-
-            const writable = await this.fileHandle.createWritable()
-            await writable.write(jsonString)
-            await writable.close()
-            this.edited = false
+    static async save() {
+        const jsonString = GraphManager.getJsonString()
+        if (await GraphManager.save(jsonString)) {
+            GraphManager.setSaved()
         } else {
             this.saveAs()
         }
     }
 
-    static async saveAs(){
-        const jsonString = this.getJsonString()
+    static async saveAs() {
+        const jsonString = GraphManager.getJsonString()
         if (jsonString === undefined)
             return
-        if ("showSaveFilePicker" in window){
-            this.fileHandle = await window.showSaveFilePicker(
-                {types: [
-                    {
-                        description: "All JSON files",
-                        accept: {
-                            "application/json": [".json"]
+        if ("showSaveFilePicker" in window) {
+            const fileHandle = await window.showSaveFilePicker(
+                {
+                    types: [
+                        {
+                            description: "All JSON files",
+                            accept: {
+                                "application/json": [".json"]
+                            }
                         }
-                    }
-                ], suggestedName: this.fileName
-            } )
-            this.fileName = this.fileHandle.name
-            const writable = await this.fileHandle.createWritable()
+                    ]
+                })
+            const writable = await fileHandle.createWritable()
             await writable.write(jsonString)
             await writable.close()
 
-            this.edited = false
-            this.save_button.classList.remove("disabled")
+            GraphManager.setSaved()
         } else {
-            const bb = new Blob([jsonString], {type: 'text/plain'})
+            const bb = new Blob([jsonString], { type: 'text/plain' })
             const a = document.createElement('a')
-            a.download = this.fileName
+            a.download = GraphManager.id ? GraphManager.id.substr(GraphManager.id.lastIndexOf("/") + 1) + ".json" : "density_function.json" 
             a.href = window.URL.createObjectURL(bb)
             a.click()
-            this.edited = false
+            GraphManager.setSaved()
         }
-    }
-
-    static setEdited(force: boolean = true){
-        this.edited = force
     }
 }
