@@ -1,10 +1,12 @@
 
-import { Spline } from 'deepslate';
+import { CubicSpline } from 'deepslate';
 import { IWidget, LGraphCanvas, LGraphNode, Vector2, WidgetCallback, widgetTypes } from 'litegraph.js'
+import { IdentityNumberFunction } from '../util';
 
-export class SplineWidget implements IWidget<Spline<number>>{
+export class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>>{
     name: string;
-    value: Spline<number> = new Spline<number>("spine", (c) => c, [-1, 1], [() => -1, () => 1], [1, 1]);
+    value: CubicSpline.MultiPoint<number> = new CubicSpline.MultiPoint<number>(IdentityNumberFunction,
+                [-1, 1], [new CubicSpline.Constant(-1), new CubicSpline.Constant(1)], [1, 1]);
 
     public min_input: number = -1;
     public max_input: number = 1;
@@ -58,14 +60,14 @@ export class SplineWidget implements IWidget<Spline<number>>{
         ctx.beginPath()
         const step = 5
         for (var x = 0; x<=width; x+=step){
-            ctx.lineTo(x+10, this.outputToPos(this.value.apply(this.posToInput(x + 10, width)), width))
+            ctx.lineTo(x+10, this.outputToPos(this.value.compute(this.posToInput(x + 10, width)), width))
         }
-        ctx.lineTo(width+10, this.outputToPos(this.value.apply(this.posToInput(width + 10, width)), width))
+        ctx.lineTo(width+10, this.outputToPos(this.value.compute(this.posToInput(width + 10, width)), width))
         ctx.stroke()
 
         for (var i = 0 ; i<this.value.locations.length ; i++){
             const x = this.inputToPos(this.value.locations[i], width)
-            const y = this.outputToPos(this.value.values[i](0), width)
+            const y = this.outputToPos(this.value.values[i].compute(0), width)
             ctx.fillStyle = i == this.selected_id ? "orange" : "white"
             ctx.beginPath()
             ctx.arc(x, y, i == this.selected_id ? 3 : 2, 0, 2 * Math.PI);  
@@ -92,7 +94,7 @@ export class SplineWidget implements IWidget<Spline<number>>{
        ctx.fillText(this.max_input.toFixed(2), 10+width-ctx.measureText(this.max_input.toFixed(2)).width, posY+width+12)
        if (this.selected_id >= 0){
            ctx.fillStyle = "orange"
-           const text = "(" + this.value.locations[this.selected_id].toFixed(2) + ", " + this.value.values[this.selected_id](0).toFixed(2) + ")"
+           const text = "(" + this.value.locations[this.selected_id].toFixed(2) + ", " + this.value.values[this.selected_id].compute(0).toFixed(2) + ")"
            ctx.fillText(text, 10+width/2-ctx.measureText(text).width/2, posY+width+12)
        }
     }
@@ -117,7 +119,7 @@ export class SplineWidget implements IWidget<Spline<number>>{
         if (event.type === "mousedown"){
             for (var i = 0 ; i<this.value.locations.length ; i++){
                 const x = this.inputToPos(this.value.locations[i], this.widged_width)
-                const y = this.outputToPos(this.value.values[i](0), this.widged_width)
+                const y = this.outputToPos(this.value.values[i].compute(0), this.widged_width)
 
 
                 const distance = (x - pos[0])*(x - pos[0]) + (y - pos[1])*(y - pos[1])
@@ -153,12 +155,12 @@ export class SplineWidget implements IWidget<Spline<number>>{
             const location = this.posToInput(pos[0], this.widged_width)
             const value = this.posToOutput(pos[1], this.widged_width)
 
-            if (Math.abs(this.outputToPos(this.value.apply(location), this.widged_width) - pos[1]) < 10){
+            if (Math.abs(this.outputToPos(this.value.compute(location), this.widged_width) - pos[1]) < 10){
                 var index = this.value.locations.findIndex((loc) => loc > location)
                 if (index === -1)
                     index = this.value.locations.length
                 this.value.locations.splice(index, 0, location)
-                this.value.values.splice(index, 0, () => value)
+                this.value.values.splice(index, 0, new CubicSpline.Constant(value))
                 this.value.derivatives.splice(index, 0, 0)
                 this.dragging_id = index
                 this.selected_id = index
@@ -172,7 +174,7 @@ export class SplineWidget implements IWidget<Spline<number>>{
         } else if (event.type === "mousemove" && this.dragging_id >= 0){
             if (this.dragging_derivative){
                 const x = this.inputToPos(this.value.locations[this.dragging_id], this.widged_width)
-                const y = this.outputToPos(this.value.values[this.dragging_id](0), this.widged_width)
+                const y = this.outputToPos(this.value.values[this.dragging_id].compute(0), this.widged_width)
 
                 this.value.derivatives[this.dragging_id] = (y - pos[1])/ (-x + pos[0]) / (this.max_input - this.min_input) * (this.max_value - this.min_value)
             } else {
@@ -207,7 +209,7 @@ export class SplineWidget implements IWidget<Spline<number>>{
                 }
 
                 this.value.locations[this.dragging_id] = location
-                this.value.values[this.dragging_id] = () => value
+                this.value.values[this.dragging_id] = new CubicSpline.Constant(value)
                 this.value.derivatives[this.dragging_id] = derivative
 
             }

@@ -1,4 +1,4 @@
-import { Spline } from "deepslate";
+import { CubicSpline } from "deepslate";
 import { LiteGraph, LGraph, LGraphCanvas, LGraphNode, IContextMenuOptions } from "litegraph.js";
 import { DatapackManager } from "../DatapackManager";
 import { ConstantDensityFunction } from "../nodes/constant_density_function";
@@ -7,6 +7,7 @@ import { DensityFunctionOutput } from "../nodes/density_function_output";
 import { SplineDensityFunction } from "../nodes/density_function_spline";
 import { NamedDensityFunction } from "../nodes/named_density_function";
 import { registerNodes } from "../nodes/register";
+import { IdentityNumberFunction } from "../util";
 import { MenuManager } from "./MenuManager";
 
 export class GraphManager {
@@ -188,11 +189,11 @@ export class GraphManager {
                     throw Error("Multidimenional Splines are not supported (yet)")
                 }
                 locations.push(point.location)
-                values.push(() => point.value)
+                values.push(new CubicSpline.Constant(point.value))
                 derivatives.push(point.derivative)
             }
 
-            node.splineWidget.value = new Spline<number>("spine", (c) => c, locations, values, derivatives);
+            node.splineWidget.value = new CubicSpline.MultiPoint<number>(IdentityNumberFunction, locations, values, derivatives);
             node.splineWidget.min_input = locations[0] - 0.1
             node.splineWidget.max_input = locations[locations.length - 1] + 0.1
 

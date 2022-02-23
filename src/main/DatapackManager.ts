@@ -16,6 +16,10 @@ export class DatapackManager{
 
     }
 
+    static reload(){
+        
+    }
+
     static closeDatapacks(){
         this.datapack = undefined
         this.density_functions = undefined

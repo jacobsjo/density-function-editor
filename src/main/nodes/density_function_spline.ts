@@ -52,7 +52,7 @@ export class SplineDensityFunction extends LGraphNodeFixed{
         for (var i = 0 ; i < this.splineWidget.value.locations.length ; i++){
             points.push({
                 location: this.splineWidget.value.locations[i],
-                value: this.splineWidget.value.values[i](0),
+                value: this.splineWidget.value.values[i].compute(0),
                 derivative: this.splineWidget.value.derivatives[i]
             })
         }
