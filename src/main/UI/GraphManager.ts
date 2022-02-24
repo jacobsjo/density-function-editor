@@ -1,4 +1,4 @@
-import { CubicSpline, DensityFunction } from "deepslate";
+import { CubicSpline, DensityFunction, NoiseRouter, NoiseSettings, XoroshiroRandom } from "deepslate";
 import { LiteGraph, LGraph, LGraphCanvas, LGraphNode, IContextMenuOptions } from "litegraph.js";
 import { DatapackManager } from "../DatapackManager";
 import { ConstantDensityFunctionNode } from "../nodes/constant_density_function";
@@ -24,6 +24,8 @@ export class GraphManager {
 
     static oldJson: unknown = {}
 
+    static noiseSettings: NoiseSettings = undefined
+
     static save: (jsonString: string) => Promise<boolean> = async () => false
 
     static init() {
@@ -38,6 +40,80 @@ export class GraphManager {
             this.canvas.dirty_canvas = true
         }
         this.canvas.onDrawLinkTooltip = (ctx, link, canvas) => {
+            if (!link) return
+
+            const pos = (link as any)._pos;
+            const data = (link as any).data;
+            const preview_size = 200
+            const min_x = 0
+            const max_x = 2000
+            const max_y = 2000
+            const min_y = 0
+            if (data === undefined || data.df === undefined){
+                return
+            }
+            var df: DensityFunction = data.df
+
+            if (this.noiseSettings !== undefined){
+                console.log("using visitor")
+                const visitor = NoiseRouter.createVisitor(XoroshiroRandom.create(BigInt(0)).forkPositional(), this.noiseSettings)
+                df = df.mapAll(visitor)
+            }
+
+            ctx.fillStyle = "black"
+            ctx.strokeStyle = "white"
+            ctx.beginPath()
+            ctx.lineTo(pos[0]-preview_size/2 - 1, pos[1]-preview_size-21)
+            ctx.lineTo(pos[0]+preview_size/2 + 1, pos[1]-preview_size-21)
+            ctx.lineTo(pos[0]+preview_size/2 + 1, pos[1]-19)
+            ctx.lineTo(pos[0]+20, pos[1]-19)
+            ctx.lineTo(pos[0], pos[1]-10)
+            ctx.lineTo(pos[0]-20, pos[1]-19)
+            ctx.lineTo(pos[0]-preview_size/2 - 1, pos[1]-19)
+            ctx.lineTo(pos[0]-preview_size/2 - 1, pos[1]-preview_size-21)
+            ctx.fill()
+            ctx.stroke()
+            //ctx.fillRect(pos[0]-10,pos[1]-10, 20, 20)
+
+            var min = Infinity
+            var max = -Infinity
+
+            const pixels = []
+            for (var px = 0 ; px < preview_size ; px++){
+                for (var py = 0 ; py < preview_size ; py++){
+                    const x = px / preview_size * (max_x - min_x)
+                    const y = py / preview_size * (max_y - min_y)
+                    const context = {
+                        x: () => x,
+                        y: () => 0,
+                        z: () => y
+                    }
+                    const value = df.compute(context)
+
+                    if (value < min) min = value
+                    if (value > max) max = value
+
+                    pixels.push(value)
+                }
+            }
+
+            if (max === min){
+                ctx.fillStyle = "#808080"
+                ctx.fillRect(pos[0] - preview_size/2, pos[1] - preview_size - 20, preview_size, preview_size)
+            } else {
+                for (var px = 0 ; px < preview_size ; px++){
+                    for (var py = 0 ; py < preview_size ; py++){
+                        const index = py * (preview_size) + px;
+                        var value = (Math.floor(((pixels[index] - min) / (max - min)) * 256)).toString(16)
+                        if (value === "100") value = "ff"
+                        if (value.length === 1) value = "0" + value
+
+                        ctx.fillStyle = "#" + value + value + value
+                        ctx.fillRect(px + pos[0] - preview_size/2, py + pos[1] - preview_size - 20, 1, 1)
+                    }
+                }
+            }
+
             return true
         }
 
@@ -59,16 +135,7 @@ export class GraphManager {
             }
         }
 
-        this.canvas.getExtraMenuOptions = () => {
-            return [{
-                content: "Open",
-                title: "Open",
-                has_submenu: true,
-                submenu: {
-                    options: DatapackManager.getMenuOptions()
-                }
-            }]
-        }
+        this.canvas.getExtraMenuOptions = () => DatapackManager.getMenuOptions()
 
         this.graph.beforeChange = (_info?: LGraphNode) => {
             this.has_change = true

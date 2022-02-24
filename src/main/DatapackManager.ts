@@ -1,4 +1,4 @@
-import { DensityFunction, Identifier, NoiseParameters, WorldgenRegistries } from "deepslate";
+import { DensityFunction, Identifier, NoiseParameters, NoiseSettings, WorldgenRegistries } from "deepslate";
 import { IContextMenuItem } from "litegraph.js";
 import { Datapack } from "mc-datapack-loader";
 import { GraphManager } from "./UI/GraphManager";
@@ -27,9 +27,11 @@ export class DatapackManager{
         }
 
         for (const n of this.noises){
-            const [namespace, path] = n.split(":", 2)
-            WorldgenRegistries.NOISE.register(Identifier.parse(n), NoiseParameters.fromJson(this.datapack.get("worldgen/noise", n)))
+            const json = await this.datapack.get("worldgen/noise", n)
+            WorldgenRegistries.NOISE.register(Identifier.parse(n), NoiseParameters.fromJson(json))
         }
+
+        console.log(WorldgenRegistries.NOISE)
     }
 
     static closeDatapacks(){
@@ -40,53 +42,85 @@ export class DatapackManager{
 
     static getMenuOptions(): IContextMenuItem[] {
         if (this.datapack === undefined) return []
-
+    
         return [{
-            content: "density_function",
-            title: "Density Function",
+            content: "Open",
+            title: "Open",
             has_submenu: true,
             submenu: {
-                options: this.density_functions.map(df => {
-                    return {
-                        content: df,
-                        title: df,
-                        has_submenu: false,
-                        callback: () => {
-                            this.datapack.get("worldgen/density_function", df).then(json => GraphManager.loadJSON(json, (jsonString: string) => {
-                                return this.datapackSave(jsonString, df)
-                            }, df, true))
-                        }
+                options: [{
+                    content: "density_function",
+                    title: "Density Function",
+                    has_submenu: true,
+                    submenu: {
+                        options: this.density_functions.map(df => {
+                            return {
+                                content: df,
+                                title: df,
+                                has_submenu: false,
+                                callback: () => {
+                                    this.datapack.get("worldgen/density_function", df).then(json => GraphManager.loadJSON(json, (jsonString: string) => {
+                                        return this.datapackSave(jsonString, df)
+                                    }, df, true))
+                                    this.datapack.get("worldgen/noise_settings", df.split("/", 2)[0]).then((json: any) => {
+                                        if (json !== undefined){
+                                            GraphManager.noiseSettings = NoiseSettings.fromJson(json.noise)
+                                        }
+                                    })
+                                }
+                            }
+                        })
                     }
-                })
+                },{
+                    content: "noise_settings",
+                    title: "Noise Settings",
+                    has_submenu: true,
+                    submenu: {
+                        options: this.noise_settings.map(ns => {
+                            return {
+                                content: ns,
+                                title: ns,
+                                has_submenu: true,
+                                submenu: {
+                                    options: noise_router_fields.map(field => {
+                                        return {
+                                            content: field,
+                                            title: field,
+                                            has_submenu: false,
+                                            callback: () => {
+                                                this.datapack.get("worldgen/noise_settings", ns).then((json: any) => {
+                                                    GraphManager.loadJSON(json.noise_router[field], async (jsonString: string) => {
+                                                        return this.datapackSave(jsonString, ns + "/" + field)
+                                                    }, ns + "/" + field, true)
+                                                    GraphManager.noiseSettings = NoiseSettings.fromJson(json.noise)
+                                                })
+                                            }
+                                        }
+                                    })
+                                }
+                            }
+                        })
+                    }
+                }]
             }
         },{
-            content: "noise_settings",
-            title: "Noise Settings",
+            content: "select_noise_settings",
+            title: "Set noise_settings",
             has_submenu: true,
             submenu: {
                 options: this.noise_settings.map(ns => {
                     return {
                         content: ns,
                         title: ns,
-                        has_submenu: true,
-                        submenu: {
-                            options: noise_router_fields.map(field => {
-                                return {
-                                    content: field,
-                                    title: field,
-                                    has_submenu: false,
-                                    callback: () => {
-                                        this.datapack.get("worldgen/noise_settings", ns).then((json: any) => GraphManager.loadJSON(json.noise_router[field], async (jsonString: string) => {
-                                            return this.datapackSave(jsonString, ns + "/" + field)
-                                        }, ns + "/" + field, true))
-                                    }
-                                }
-                            })
+                        has_submenu: false,
+                        callback: () => {
+                            this.datapack.get("worldgen/noise_settings", ns).then((json: any) => GraphManager.noiseSettings = NoiseSettings.fromJson(json.noise))
                         }
                     }
                 })
             }
         }]
+    
     }
 
     static async datapackSave(jsonString: string, id: string){
