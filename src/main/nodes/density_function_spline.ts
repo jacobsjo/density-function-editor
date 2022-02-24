@@ -14,22 +14,25 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
 
     private wdgs: {[key: string]: IWidget} = {}
     public splineWidget: SplineWidget
+    private has_change: boolean = false
 
     constructor(){
         super()
 
         this.addInput("coordinate", "densityFunction", {label: "coordinate", locked: true, nameLocked: true})
         this.addOutput("output", "densityFunction", {locked: true, nameLocked: true});
-        this.splineWidget = this.addCustomWidget<SplineWidget>(new SplineWidget())
+        this.splineWidget = this.addCustomWidget<SplineWidget>(new SplineWidget())  // TODO: set has changed when spline changes
         this.addProperty("min_value", -1, "number")
         this.wdgs.min_value = this.addWidget("number", "min_value", -1, (value) => {
             this.properties.min_value = value
             this.splineWidget.min_value = value
+            this.has_change = true
         })
         this.addProperty("max_value", 1, "number")
         this.wdgs.max_value = this.addWidget("number", "max_value", 1, (value) => {
             this.properties.max_value = value
             this.splineWidget.max_value = value
+            this.has_change = true
         })
 
         this.title = "spline"
@@ -45,6 +48,7 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
 
     onConnectionsChange(){
         this.color = !this.inputs[0].link ? "#330000" : "#000033"
+        this.has_change = true
     }
 
     onExecute(){
@@ -62,6 +66,7 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
 
         const error = (input === undefined || input.error)
 
+        //TODO use persistent cache
         this.setOutputData(0, {
             json: {
                 type: "minecraft:spline",
@@ -73,6 +78,7 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
                 }
             },
             error: error,
+            changed: input.change || this.has_change,
             df: (input && input.df !== undefined) ? new DensityFunction.Spline(
                     new CubicSpline.MultiPoint<DensityFunction.Context>(
                         input.df, this.splineWidget.value.locations, this.splineWidget.value.values as CubicSpline.Constant[], this.splineWidget.value.derivatives),
@@ -80,6 +86,8 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
                     this.properties.max_value)
                 : DensityFunction.Constant.ZERO
         })
+
+        this.has_change = false
     }
 }
 

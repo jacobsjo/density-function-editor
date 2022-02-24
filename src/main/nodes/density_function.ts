@@ -1,5 +1,6 @@
 import { DensityFunction } from "deepslate";
 import { IContextMenuItem, INodeInputSlot, IWidget, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
+import { PersistentCacheDensityFunction } from "../DensityFunction/PersistentCacheDensityFunction";
 import { MenuManager } from "../UI/MenuManager";
 import { LGraphNodeFixed } from "./LGraphNodeFixed";
 
@@ -13,6 +14,9 @@ export class DensityFunctionNode extends LGraphNodeFixed{
     public input_names: string[]
     private wdgs: {[key: string]: IWidget} = {}
 
+    private has_change: boolean = false
+    private df: DensityFunction = undefined
+
     constructor(private name: string, args: Map<string, string>){
         super()
 
@@ -24,16 +28,28 @@ export class DensityFunctionNode extends LGraphNodeFixed{
                 this.input_names.push(argument)
             } else if (type === "number") {
                 this.addProperty(argument, 0, "number")
-                this.wdgs[argument] = this.addWidget("number", argument, 0, (value) => {this.properties[argument] = value})
+                this.wdgs[argument] = this.addWidget("number", argument, 0, (value) => {
+                    this.properties[argument] = value
+                    this.has_change = true
+                })
             } else if (type === "spline") {
                 this.addProperty(argument, 0, "string")
-                this.wdgs[argument] = this.addWidget("combo", argument, "offset", (value) => {this.properties[argument] = value}, {values: spline_values})
+                this.wdgs[argument] = this.addWidget("combo", argument, "offset", (value) => {
+                    this.properties[argument] = value
+                    this.has_change = true
+                }, {values: spline_values})
             } else if (type === "noise") {
                 this.addProperty(argument, 0, "string")
-                this.wdgs[argument] = this.addWidget("text", argument, "minecraft:", (value) => {this.properties[argument] = value})
+                this.wdgs[argument] = this.addWidget("text", argument, "minecraft:", (value) => {
+                    this.properties[argument] = value
+                    this.has_change = true
+                })
             } else if (type === "sampler_type") {
                 this.addProperty(argument, 0, "string")
-                this.wdgs[argument] = this.addWidget("combo", argument, "type_1", (value) => {this.properties[argument] = value}, {values: sampler_types})
+                this.wdgs[argument] = this.addWidget("combo", argument, "type_1", (value) => {
+                    this.properties[argument] = value
+                    this.has_change = true
+                }, {values: sampler_types})
             }
         })
 
@@ -50,14 +66,16 @@ export class DensityFunctionNode extends LGraphNodeFixed{
 
     onConnectionsChange(){
         this.color = this.inputs.filter(i => !i.link).length > 0 ? "#330000" : "#000033"
+        this.has_change = true
     }
 
     onExecute(){
-        this.onConnectionsChange()
+        this.color = this.inputs.filter(i => !i.link).length > 0 ? "#330000" : "#000033"
         const input_jsons: Record<string, unknown> = {};
         const input_dfs: Record<string, DensityFunction> = {};
         var error = false
         var input_has_error = false
+        var input_has_changed = false
         this.input_names.forEach((input) => {
             const i = this.getInputDataByName(input)
             if (i === undefined){
@@ -67,14 +85,22 @@ export class DensityFunctionNode extends LGraphNodeFixed{
                 input_jsons[input] = i.json
                 input_dfs[input] = i.df
                 input_has_error ||= i.error
+                input_has_changed ||= i.changed
             }
         })
+
+        if (this.df === undefined || this.has_change || input_has_changed){
+            this.df = new PersistentCacheDensityFunction(DensityFunction.fromJson({type: this.name, ...this.properties, ...input_dfs}, (obj) => obj as DensityFunction))
+        }
 
         this.setOutputData(0, {
             json: {type: this.name, ...this.properties, ...input_jsons},
             error: error || input_has_error,
-            df: DensityFunction.create({type: this.name, ...this.properties, ...input_dfs}, (obj) => obj as DensityFunction)
+            changed: this.has_change || input_has_changed,
+            df: this.df
         })
+
+        this.has_change = false
     }
 }
 

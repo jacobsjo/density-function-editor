@@ -7,12 +7,16 @@ export class ConstantDensityFunctionNode extends LGraphNodeFixed{
     static title = "constant"
 
     private wdgt: IWidget
+    private has_change: boolean = false
 
     constructor(){
         super()
         const output = this.addOutput("output","densityFunction", {locked: true, nameLocked: true});
         this.addProperty("value", 0, "number")
-        this.wdgt = this.addWidget("number", "Value", 0, (value) => {this.properties.value = value})
+        this.wdgt = this.addWidget("number", "Value", 0, (value) => {
+            this.properties.value = value
+            this.has_change = true
+        })
         this.title = "Constant"
         this.color = "#000033"
     }
@@ -32,8 +36,10 @@ export class ConstantDensityFunctionNode extends LGraphNodeFixed{
         this.setOutputData(0, {
             json: this.properties.value,
             error: false,
+            changed: this.has_change,
             df: new DensityFunction.Constant(this.properties.value)
         })
+        this.has_change = false
     }
 }
 
