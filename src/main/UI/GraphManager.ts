@@ -1,5 +1,5 @@
 import { CubicSpline, DensityFunction, NoiseRouter, NoiseSettings, XoroshiroRandom } from "deepslate";
-import { LiteGraph, LGraph, LGraphCanvas, LGraphNode, IContextMenuOptions } from "litegraph.js";
+import { LiteGraph, LGraph, LGraphCanvas, LGraphNode, IContextMenuOptions, LLink } from "litegraph.js";
 import { DatapackManager } from "../DatapackManager";
 import { ConstantDensityFunctionNode } from "../nodes/constant_density_function";
 import { DensityFunctionNode } from "../nodes/density_function";
@@ -9,6 +9,7 @@ import { NamedDensityFunctionNode } from "../nodes/named_density_function";
 import { registerNodes } from "../nodes/register";
 import { IdentityNumberFunction } from "../util";
 import { MenuManager } from "./MenuManager";
+import { PreviewMode } from "./PreviewMode";
 
 export class GraphManager {
     static output_node: LGraphNode
@@ -26,11 +27,17 @@ export class GraphManager {
 
     static noiseSettings: NoiseSettings = undefined
 
+    private static currentLink: LLink = undefined
+    private static preview_canvas: HTMLCanvasElement
+
+
     static save: (jsonString: string) => Promise<boolean> = async () => false
 
     static init() {
         LiteGraph.clearRegisteredTypes() // don't use default node types
         registerNodes()
+
+        this.preview_canvas = document.createElement("canvas")
 
         this.graph = new LGraph();
 
@@ -40,7 +47,10 @@ export class GraphManager {
             this.canvas.dirty_canvas = true
         }
         this.canvas.onDrawLinkTooltip = (ctx, link, canvas) => {
-            if (!link) return
+            if (!link){
+                this.currentLink = undefined
+                return true
+            }
 
             const pos = (link as any)._pos;
             const data = (link as any).data;
@@ -49,6 +59,9 @@ export class GraphManager {
             const max_x = 2000
             const max_y = 2000
             const min_y = 0
+
+            const preview_mode: PreviewMode = new PreviewMode.SemiCellAlignedProfile(4)
+
             if (data === undefined || data.df === undefined){
                 return
             }
@@ -58,6 +71,40 @@ export class GraphManager {
                 console.log("using visitor")
                 const visitor = NoiseRouter.createVisitor(XoroshiroRandom.create(BigInt(0)).forkPositional(), this.noiseSettings)
                 df = df.mapAll(visitor)
+            }
+
+            
+
+            var min = Infinity
+            var max = -Infinity
+
+            const pixels = []
+
+            try{
+                for (var py = 0 ; py < preview_size ; py++){
+                    for (var px = 0 ; px < preview_size ; px++){
+                        const x = px / preview_size
+                        const y = py / preview_size
+                        const context = preview_mode.getContext(x, y)
+
+                        try{
+                            const value = df.compute(context)
+
+                            if (value < min) min = value
+                            if (value > max) max = value
+    
+                            pixels.push(value)
+                        } catch (e) {
+                            var newErr = new Error(`Could not calculate density function at pos ${x}, ${y}`);
+                            newErr.stack += '\nCaused by: '+e.stack;
+                            throw newErr;
+                        }
+
+                    }
+                }
+            } catch (e) {
+                console.error(e)
+                return
             }
 
             ctx.fillStyle = "black"
@@ -73,48 +120,44 @@ export class GraphManager {
             ctx.lineTo(pos[0]-preview_size/2 - 1, pos[1]-preview_size-21)
             ctx.fill()
             ctx.stroke()
-            //ctx.fillRect(pos[0]-10,pos[1]-10, 20, 20)
-
-            var min = Infinity
-            var max = -Infinity
-
-            const pixels = []
-            for (var px = 0 ; px < preview_size ; px++){
-                for (var py = 0 ; py < preview_size ; py++){
-                    const x = px / preview_size * (max_x - min_x)
-                    const y = py / preview_size * (max_y - min_y)
-                    const context = {
-                        x: () => x,
-                        y: () => 0,
-                        z: () => y
-                    }
-                    const value = df.compute(context)
-
-                    if (value < min) min = value
-                    if (value > max) max = value
-
-                    pixels.push(value)
-                }
-            }
 
             if (max === min){
                 ctx.fillStyle = "#808080"
                 ctx.fillRect(pos[0] - preview_size/2, pos[1] - preview_size - 20, preview_size, preview_size)
             } else {
-                for (var px = 0 ; px < preview_size ; px++){
-                    for (var py = 0 ; py < preview_size ; py++){
-                        const index = py * (preview_size) + px;
-                        var value = (Math.floor(((pixels[index] - min) / (max - min)) * 256)).toString(16)
-                        if (value === "100") value = "ff"
-                        if (value.length === 1) value = "0" + value
 
-                        ctx.fillStyle = "#" + value + value + value
-                        ctx.fillRect(px + pos[0] - preview_size/2, py + pos[1] - preview_size - 20, 1, 1)
+                if (this.currentLink !== link){
+                    this.graph.runStep()
+                    console.log("rendering noise")
+                    this.currentLink = link
+         
+                    this.preview_canvas.width = preview_size
+                    this.preview_canvas.height = preview_size
+                    const preview_ctx = this.preview_canvas.getContext("2d")
+                    const preview_data = preview_ctx.createImageData(preview_size, preview_size)
+
+                    for (var py = 0 ; py < preview_size ; py++){
+                        for (var px = 0 ; px < preview_size ; px++){
+                            const index = py * (preview_size) + px;
+                            var value = Math.clamp((Math.floor(((pixels[index] - min) / (max - min)) * 256)), 0, 255)
+                            preview_data.data[index * 4] = value
+                            preview_data.data[index * 4 + 1] = value
+                            preview_data.data[index * 4 + 2] = value
+                            preview_data.data[index * 4 + 3] = 255
+                        }
                     }
-                }
+
+                    preview_ctx.putImageData(preview_data, 0,0)
+                } 
+                ctx.drawImage(this.preview_canvas, pos[0] - preview_size/2, pos[1] - preview_size - 20)
             }
 
-            return true
+            ctx.fillStyle = "orange"
+            const text = `[ ${min.toFixed(2)} - ${max.toFixed(2)} ]`
+            const measure = ctx.measureText(text)
+            ctx.fillText(text, pos[0] - measure.width/2, pos[1]-20-8)
+
+            return true // hide default data display
         }
 
         this.canvas.onShowNodePanel = (n) => { }

@@ -68,13 +68,13 @@ export const schemas = new Map(Object.entries({
         when_out_of_range: "densityFunction",
     },
     'minecraft:shift': {
-        argument: "densityFunction",
+        argument: "noise",
     },
     'minecraft:shift_a': {
-        argument: "densityFunction",
+        argument: "noise",
     },
     'minecraft:shift_b': {
-        argument: "densityFunction",
+        argument: "noise",
     },
     'minecraft:shifted_noise': {
         shift_x: "densityFunction",
