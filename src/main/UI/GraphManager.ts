@@ -51,7 +51,7 @@ export class GraphManager {
         }
 
         this.canvas.onDrawLinkTooltip = (ctx, link, canvas) => {
-            if (!link) {
+            if (!link || this.noiseSettings === undefined) {
                 this.currentLink = undefined
                 return true
             }
@@ -261,29 +261,31 @@ export class GraphManager {
         }
 
         // calculate output df once, to fill caches
-        setTimeout(()=>{
-            this.graph.runStep()
-            const visitor = NoiseRouter.createVisitor(XoroshiroRandom.create(BigInt(0)).forkPositional(), this.noiseSettings)
-            const df = this.getOutput().df.mapAll(visitor)
-            for (var mode = 0 ; mode < PreviewMode.PREVIEW_MODES.length ; mode ++){
-                const preview_mode = new (PreviewMode.PREVIEW_MODES[mode])(NoiseSettings.cellWidth(this.noiseSettings))
-                for (var py = 0; py < 200; py++) {
-                    for (var px = 0; px < this.preview_size; px++) {
-                        const x = px / this.preview_size
-                        const y = py / this.preview_size
-                        const context = preview_mode.getContext(x, y)
+        if (this.noiseSettings !== undefined){
+            setTimeout(()=>{
+                this.graph.runStep()
+                const visitor = NoiseRouter.createVisitor(XoroshiroRandom.create(BigInt(0)).forkPositional(), this.noiseSettings)
+                const df = this.getOutput().df.mapAll(visitor)
+                for (var mode = 0 ; mode < PreviewMode.PREVIEW_MODES.length ; mode ++){
+                    const preview_mode = new (PreviewMode.PREVIEW_MODES[mode])(NoiseSettings.cellWidth(this.noiseSettings))
+                    for (var py = 0; py < 200; py++) {
+                        for (var px = 0; px < this.preview_size; px++) {
+                            const x = px / this.preview_size
+                            const y = py / this.preview_size
+                            const context = preview_mode.getContext(x, y)
 
-                        try {
-                            df.compute(context)
-                        } catch (e) {
-                            var newErr = new Error(`Could not calculate density function at pos ${x}, ${y}`);
-                            newErr.stack += '\nCaused by: ' + e.stack;
-                            throw newErr;
+                            try {
+                                df.compute(context)
+                            } catch (e) {
+                                var newErr = new Error(`Could not calculate density function at pos ${x}, ${y}`);
+                                newErr.stack += '\nCaused by: ' + e.stack;
+                                throw newErr;
+                            }
                         }
                     }
                 }
-            }
-        }, 0)
+            }, 0)
+        }
 
         this.graph.start(50)
         this.has_change = false

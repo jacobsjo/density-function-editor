@@ -1,4 +1,4 @@
-import { DensityFunction } from "deepslate";
+import { DensityFunction, WorldgenRegistries } from "deepslate";
 import { IContextMenuItem, INodeInputSlot, IWidget, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
 import { PersistentCacheDensityFunction } from "../DensityFunction/PersistentCacheDensityFunction";
 import { MenuManager } from "../UI/MenuManager";
@@ -40,10 +40,10 @@ export class DensityFunctionNode extends LGraphNodeFixed{
                 }, {values: spline_values})
             } else if (type === "noise") {
                 this.addProperty(argument, 0, "string")
-                this.wdgs[argument] = this.addWidget("text", argument, "minecraft:", (value) => {
+                this.wdgs[argument] = this.addWidget("combo", argument, WorldgenRegistries.NOISE.keys()[0].toString(), (value) => {
                     this.properties[argument] = value
                     this.has_change = true
-                })
+                }, {values: WorldgenRegistries.NOISE.keys().map(k => k.toString())})
             } else if (type === "sampler_type") {
                 this.addProperty(argument, 0, "string")
                 this.wdgs[argument] = this.addWidget("combo", argument, "type_1", (value) => {
