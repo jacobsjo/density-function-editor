@@ -17,32 +17,26 @@ export class NamedDensityFunctionNode extends LGraphNodeFixed{
         super()
         this.addOutput("output","densityFunction", {locked: true, nameLocked: true});
         this.addProperty("id", "", "string")
-        this.wdgt = this.addWidget("text", "Id", "", (value) => {
+        this.wdgt = this.addWidget("combo", "Id", WorldgenRegistries.DENSITY_FUNCTION.keys()[0].toString(), (value) => {
             this.properties.id = value
-            if (GraphManager.is_part_of_datapack){
-                DatapackManager.datapack.has("worldgen/density_function", this.properties.id).then(b => this.color = b ? "#000033" : "#330000")
-            }
+            this.updateColor()
             this.has_change = true
+        }, {values: WorldgenRegistries.DENSITY_FUNCTION.keys().map(df => df.toString())})
+        this.addWidget("button", "open", "Open", () => {
+            DatapackManager.datapack.get("worldgen/density_function", this.properties.id).then(json => GraphManager.loadJSON(json, this.properties.id))
         })
-        if (GraphManager.is_part_of_datapack){
-            this.addWidget("button", "open", "Open", () => {
-                if (GraphManager.is_part_of_datapack){
-                    DatapackManager.datapack.get("worldgen/density_function", this.properties.id).then(json => GraphManager.loadJSON(json, (jsonString: string) => {
-                        return DatapackManager.datapackSave(jsonString, this.properties.id)
-                    }, this.properties.id, true))
-                }
-            })
-        }
         this.title = "Named Density Function"
         this.color = "#003300"
     }
 
     public updateWidgets() {
         this.wdgt.value = this.properties.id
-        if (GraphManager.is_part_of_datapack){
-            this.color = DatapackManager.density_functions.includes(this.properties.id) ? "#000033" : "#330000"
-        }
-}
+        this.updateColor()
+    }
+
+    private updateColor(){
+        this.color = WorldgenRegistries.DENSITY_FUNCTION.get(Identifier.parse(this.properties.id)) ? "#000033" : "#330000"
+    }
 
     getTitle = function() {
         if (this.flags.collapsed) {
@@ -57,7 +51,7 @@ export class NamedDensityFunctionNode extends LGraphNodeFixed{
 
     onExecute(){
         if (this.df === undefined || this.has_change){
-            this.df = new PersistentCacheDensityFunction(DatapackManager.density_functions.includes(this.properties.id) ? new DensityFunction.HolderHolder(Holder.reference(WorldgenRegistries.DENSITY_FUNCTION, Identifier.parse(this.properties.id))) : DensityFunction.Constant.ZERO)
+            this.df = new PersistentCacheDensityFunction(WorldgenRegistries.DENSITY_FUNCTION.get(Identifier.parse(this.properties.id)) ? new DensityFunction.HolderHolder(Holder.reference(WorldgenRegistries.DENSITY_FUNCTION, Identifier.parse(this.properties.id))) : DensityFunction.Constant.ZERO)
         }
 
         this.setOutputData(0, {

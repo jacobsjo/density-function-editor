@@ -1,5 +1,6 @@
 import { CubicSpline, DensityFunction } from "deepslate";
 import { IContextMenuItem, INodeInputSlot, IWidget, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
+import { PersistentCacheDensityFunction } from "../DensityFunction/PersistentCacheDensityFunction";
 import { MenuManager } from "../UI/MenuManager";
 import { SplineWidget } from "../widgets/SplineWidget";
 import { LGraphNodeFixed } from "./LGraphNodeFixed";
@@ -15,6 +16,7 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
     private wdgs: {[key: string]: IWidget} = {}
     public splineWidget: SplineWidget
     private has_change: boolean = false
+    private df: DensityFunction = undefined
 
     constructor(){
         super()
@@ -66,7 +68,14 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
 
         const error = (input === undefined || input.error)
 
-        //TODO use persistent cache
+        if (this.df === undefined || this.has_change || input.changed){
+            this.df = (input && input.df !== undefined) ? new PersistentCacheDensityFunction(new DensityFunction.Spline(
+                new CubicSpline.MultiPoint<DensityFunction.Context>(
+                    input.df, this.splineWidget.value.locations, this.splineWidget.value.values as CubicSpline.Constant[], this.splineWidget.value.derivatives),
+                this.properties.min_value,
+                this.properties.max_value))
+            : DensityFunction.Constant.ZERO
+        }
         this.setOutputData(0, {
             json: {
                 type: "minecraft:spline",
@@ -78,13 +87,8 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
                 }
             },
             error: error,
-            changed: input.change || this.has_change,
-            df: (input && input.df !== undefined) ? new DensityFunction.Spline(
-                    new CubicSpline.MultiPoint<DensityFunction.Context>(
-                        input.df, this.splineWidget.value.locations, this.splineWidget.value.values as CubicSpline.Constant[], this.splineWidget.value.derivatives),
-                    this.properties.min_value,
-                    this.properties.max_value)
-                : DensityFunction.Constant.ZERO
+            changed: input.changed || this.has_change,
+            df: this.df
         })
 
         this.has_change = false

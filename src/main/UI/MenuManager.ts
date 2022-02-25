@@ -2,6 +2,7 @@ import { GraphManager } from "./GraphManager"
 import { Datapack, FileListDatapack, FileSystemDirectoryDatapack } from 'mc-datapack-loader'
 import { DatapackManager } from "../DatapackManager"
 import { IContextMenuOptions, LiteGraph } from "litegraph.js"
+import { DensityFunction, Identifier, WorldgenRegistries } from "deepslate"
 
 export class MenuManager {
     static save_button: HTMLElement
@@ -11,10 +12,7 @@ export class MenuManager {
 
         document.getElementById("menu-button-new").onclick = async () => {
             if (DatapackManager.datapack !== undefined){
-                const id = prompt("Create density function with id", "minecraft:")
-                GraphManager.clear(id, (jsonString) => {
-                    return DatapackManager.datapackSave(jsonString, id)
-                })
+                GraphManager.clear()
             } else {
                 GraphManager.clear()
             }
@@ -42,7 +40,7 @@ export class MenuManager {
 
         }
 
-        const load = (jsonString: string, save_function?: (jsonString: string) => Promise<boolean>) => {
+        const load = (jsonString: string) => {
             const json = JSON.parse(jsonString)
 
             if (json.noise_router !== undefined) {
@@ -60,7 +58,7 @@ export class MenuManager {
                 var menu = new LiteGraph.ContextMenu(menu_info, options as IContextMenuOptions, GraphManager.canvas.getCanvasWindow());
                 console.error = e
             } else {
-                GraphManager.loadJSON(json, save_function)
+                GraphManager.loadJSON(json)
                 DatapackManager.closeDatapacks()
             }
         }
@@ -80,12 +78,7 @@ export class MenuManager {
 
                 const file = await fileHandle.getFile()
                 const jsonString = await file.text()
-                load(jsonString, async (jsonString: string) => {
-                    const writable = await fileHandle.createWritable()
-                    await writable.write(jsonString)
-                    await writable.close()
-                    return true
-                })
+                load(jsonString)
             } else {
                 const input = document.createElement('input') as HTMLInputElement
                 input.type = 'file'
@@ -109,51 +102,71 @@ export class MenuManager {
         }
 
         document.getElementById("menu-button-save-as").onclick = async () => {
-            await this.saveAs()
+            GraphManager.id = (await this.save(undefined, GraphManager.id)) ?? GraphManager.id
         }
 
         this.save_button.onclick = async () => {
-            await this.save()
+            await this.save(GraphManager.id)
         }
     }
 
-    static async save() {
-        const jsonString = GraphManager.getJsonString()
-        if (await GraphManager.save(jsonString)) {
-            GraphManager.setSaved()
+    static async save(id?: string, suggested_id?: string): Promise<string> {
+        const output = GraphManager.getOutput()
+        if (output.error && !confirm("Some nodes have unconnected inputs, the resulting JSON will be invalid. Continue?")) 
+            return undefined
+
+        const jsonString = JSON.stringify(output.json, null, 2)
+        if (DatapackManager.datapack.canSave()){
+            if (id === undefined || id === ""){
+                const input_id = prompt("Set id of density function", suggested_id ?? "minecraft:")
+                
+                    if (input_id === null){
+                        return undefined
+                    }
+                    id = input_id
+                try{
+                    Identifier.parse(input_id)
+                } catch (e){
+                    alert("Invalid identifier - not saved")
+                    return undefined
+                }
+            }
+            if (await DatapackManager.datapackSave(jsonString, id)) {
+                GraphManager.setSaved()
+                WorldgenRegistries.DENSITY_FUNCTION.register(Identifier.parse(id), DensityFunction.fromJson(output.json)) //create new DensityFunction without all the caching...
+            } else {
+                alert("Saving unsuccessfull")
+                return undefined
+            }
         } else {
-            this.saveAs()
-        }
-    }
-
-    static async saveAs() {
-        const jsonString = GraphManager.getJsonString()
-        if (jsonString === undefined)
-            return
-        if ("showSaveFilePicker" in window) {
-            const fileHandle = await window.showSaveFilePicker(
-                {
-                    types: [
-                        {
-                            description: "All JSON files",
-                            accept: {
-                                "application/json": [".json"]
+            id ??= suggested_id // id and suggested id should behave identically when user interaction is nessecarry anyways
+            if ("showSaveFilePicker" in window) {
+                const fileHandle = await window.showSaveFilePicker(
+                    {
+                        types: [
+                            {
+                                description: "All JSON files",
+                                accept: {
+                                    "application/json": [".json"]
+                                }
                             }
-                        }
-                    ]
-                })
-            const writable = await fileHandle.createWritable()
-            await writable.write(jsonString)
-            await writable.close()
+                        ],
+                        suggestedName: id ? id.substr(id.lastIndexOf("/") + 1) + ".json" : "density_function.json" 
+                    })
+                const writable = await fileHandle.createWritable()
+                await writable.write(jsonString)
+                await writable.close()
 
-            GraphManager.setSaved()
-        } else {
-            const bb = new Blob([jsonString], { type: 'text/plain' })
-            const a = document.createElement('a')
-            a.download = GraphManager.id ? GraphManager.id.substr(GraphManager.id.lastIndexOf("/") + 1) + ".json" : "density_function.json" 
-            a.href = window.URL.createObjectURL(bb)
-            a.click()
-            GraphManager.setSaved()
+                GraphManager.setSaved()
+            } else {
+                const bb = new Blob([jsonString], { type: 'text/plain' })
+                const a = document.createElement('a')
+                a.download = id ? id.substr(id.lastIndexOf("/") + 1) + ".json" : "density_function.json" 
+                a.href = window.URL.createObjectURL(bb)
+                a.click()
+                GraphManager.setSaved()
+            }
         }
+        return id
     }
 }

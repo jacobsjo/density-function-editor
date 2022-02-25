@@ -20,7 +20,6 @@ export class GraphManager {
 
     static has_change: boolean = false
 
-    static is_part_of_datapack: boolean = false
     static id: string
 
     static oldJson: unknown = {}
@@ -32,9 +31,6 @@ export class GraphManager {
 
     private static preview_id: number = 2
     private static preview_size = 200
-
-
-    static save: (jsonString: string) => Promise<boolean> = async () => false
 
     static init() {
         LiteGraph.clearRegisteredTypes() // don't use default node types
@@ -194,7 +190,7 @@ export class GraphManager {
         return (JSON.stringify(this.getOutput().json) !== JSON.stringify(this.oldJson))
     }
 
-    static clear(id?: string, save_function: (jsonString: string) => Promise<boolean> = async () => false) {
+    static clear(id?: string) {
         if (this.hasChanged() && !confirm("You have unsaved changes. Continue?")) {
             return
         }
@@ -207,12 +203,10 @@ export class GraphManager {
         this.graph.add(this.output_node);
 
         this.has_change = false
-        this.is_part_of_datapack = DatapackManager.datapack !== undefined
         this.id = id
 
         this.graph.start(50)
         this.oldJson = {}
-        this.save = save_function
     }
 
     static getOutput(): { json: unknown, error: boolean, df: DensityFunction } {
@@ -220,30 +214,17 @@ export class GraphManager {
         return this.output_node.getInputDataByName("result") ?? { json: {}, error: true, df: DensityFunction.Constant.ZERO }
     }
 
-    static getJsonString() {
-        const output = this.getOutput()
-        console.log(output.df)
-        if (output.error && !confirm("Some nodes have unconnected inputs, the resulting JSON will be invalid. Continue?")) {
-            return undefined
-        } else {
-            const jsonString = JSON.stringify(output.json, null, 2)
-            return jsonString
-        }
-    }
-
     static setSaved() {
         this.has_change = false
         this.oldJson = this.getOutput().json
     }
 
-    static loadJSON(json: any, save_function: (jsonString: string) => Promise<boolean> = async () => false, id?: string, from_datapack: boolean = false): boolean {
+    static loadJSON(json: any, id?: string): boolean {
         if (this.hasChanged() && !confirm("You have unsaved changes. Continue?")) {
             return
         }
 
-        this.save = save_function
         this.id = id
-        this.is_part_of_datapack = from_datapack
 
         this.graph.clear()
         this.named_nodes = {}
