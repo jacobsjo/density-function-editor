@@ -12,11 +12,13 @@ export declare class GraphManager {
     static id: string;
     static oldJson: unknown;
     static noiseSettings: NoiseSettings;
+    static visitor: DensityFunction.Visitor;
     private static currentLink;
     private static preview_canvas;
     private static preview_id;
     private static preview_size;
     static init(): void;
+    static setNoiseSettings(ns: NoiseSettings): void;
     static hasChanged(): boolean;
     static clear(id?: string): void;
     static getOutput(): {

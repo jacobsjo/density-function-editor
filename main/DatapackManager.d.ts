@@ -10,6 +10,7 @@ export declare class DatapackManager {
     static register(datapack: Datapack): Promise<void>;
     static closeDatapacks(): Promise<void>;
     static getMenuOptions(): IContextMenuItem[];
+    static tryGetNoiseSettingsFromDensityFunction(df_id: string): string | NoiseSettings;
     static datapackSave(jsonString: string, id: string): Promise<boolean>;
 }
 //# sourceMappingURL=DatapackManager.d.ts.map
