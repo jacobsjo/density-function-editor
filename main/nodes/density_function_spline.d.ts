@@ -1,9 +1,11 @@
 import { SplineWidget } from "../widgets/SplineWidget";
 import { LGraphNodeFixed } from "./LGraphNodeFixed";
-export declare class SplineDensityFunction extends LGraphNodeFixed {
+export declare class SplineDensityFunctionNode extends LGraphNodeFixed {
     static title: string;
     private wdgs;
     splineWidget: SplineWidget;
+    private has_change;
+    private df;
     constructor();
     updateWidgets(): void;
     onConnectionsChange(): void;

@@ -1,8 +1,8 @@
-import { Spline } from 'deepslate';
+import { CubicSpline } from 'deepslate';
 import { IWidget, LGraphNode, Vector2 } from 'litegraph.js';
-export declare class SplineWidget implements IWidget<Spline<number>> {
+export declare class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>> {
     name: string;
-    value: Spline<number>;
+    value: CubicSpline.MultiPoint<number>;
     min_input: number;
     max_input: number;
     min_value: number;

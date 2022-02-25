@@ -44,11 +44,7 @@ body {
     cursor: default;
 }
 
-
-
 #mycanvas {
-    width: 100%;
-    height: 100%;
     padding: 0;
     margin: 0;
     background-color: rgb(33, 33, 33);

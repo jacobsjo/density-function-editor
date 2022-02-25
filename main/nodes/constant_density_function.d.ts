@@ -1,7 +1,8 @@
 import { LGraphNodeFixed } from "./LGraphNodeFixed";
-export declare class ConstantDensityFunction extends LGraphNodeFixed {
+export declare class ConstantDensityFunctionNode extends LGraphNodeFixed {
     static title: string;
     private wdgt;
+    private has_change;
     constructor();
     updateWidgets(): void;
     getTitle(): any;
