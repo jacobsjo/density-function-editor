@@ -41,7 +41,7 @@ export namespace PreviewMode{
         getContext(ax: number, ay: number): DensityFunction.Context {
             return {
                 x: ax * this.cellWidth * 200,
-                y: lerp( 1 - ay, -64, 128),
+                y: Math.floor((1 - ay) * 200 - 64),
                 z: 0
             }
         }

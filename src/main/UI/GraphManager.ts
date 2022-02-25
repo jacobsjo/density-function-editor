@@ -63,29 +63,30 @@ export class GraphManager {
 
             const arrow_height = 20
             const tab_bar_height = 15
+            const status_bar_height = 15
 
             ctx.fillStyle = "black"
             ctx.strokeStyle = "white"
             ctx.beginPath()
-            ctx.lineTo(pos[0] - this.preview_size / 2 - 1, pos[1] - this.preview_size - arrow_height - tab_bar_height -1)
-            ctx.lineTo(pos[0] + this.preview_size / 2 + 1, pos[1] - this.preview_size - arrow_height - tab_bar_height -1)
+            ctx.lineTo(pos[0] - this.preview_size / 2 - 1, pos[1] - this.preview_size - arrow_height - tab_bar_height - status_bar_height -1)
+            ctx.lineTo(pos[0] + this.preview_size / 2 + 1, pos[1] - this.preview_size - arrow_height - tab_bar_height - status_bar_height -1)
             ctx.lineTo(pos[0] + this.preview_size / 2 + 1, pos[1] - arrow_height + 1)
             ctx.lineTo(pos[0] + 20, pos[1] - arrow_height + 1)
             ctx.lineTo(pos[0], pos[1] - 10)
             ctx.lineTo(pos[0] - 20, pos[1] - arrow_height + 1)
             ctx.lineTo(pos[0] - this.preview_size / 2 - 1, pos[1] - arrow_height + 1)
-            ctx.lineTo(pos[0] - this.preview_size / 2 - 1, pos[1] - this.preview_size - arrow_height - tab_bar_height - 1)
+            ctx.lineTo(pos[0] - this.preview_size / 2 - 1, pos[1] - this.preview_size - arrow_height - tab_bar_height - status_bar_height - 1)
             ctx.fill()
             ctx.stroke()
 
+            if (this.noiseSettings !== undefined) {
+                const visitor = NoiseRouter.createVisitor(XoroshiroRandom.create(BigInt(0)).forkPositional(), this.noiseSettings)
+                df = df.mapAll(visitor)
+            }
 
             if (this.currentLink !== link) {
                 this.currentLink = link
 
-                if (this.noiseSettings !== undefined) {
-                    const visitor = NoiseRouter.createVisitor(XoroshiroRandom.create(BigInt(0)).forkPositional(), this.noiseSettings)
-                    df = df.mapAll(visitor)
-                }
 
                 var min = Infinity
                 var max = -Infinity
@@ -139,20 +140,23 @@ export class GraphManager {
 
                 preview_ctx.putImageData(preview_data, 0, 0)
             }
-            ctx.drawImage(this.preview_canvas, pos[0] - this.preview_size / 2, pos[1] - this.preview_size - arrow_height)
+            ctx.drawImage(this.preview_canvas, pos[0] - this.preview_size / 2, pos[1] - this.preview_size - arrow_height - status_bar_height)
 
             var left = pos[0] - this.preview_size / 2
             for (var i = 0 ; i < PreviewMode.PREVIEW_MODES.length ; i++){
                 const display_name = PreviewMode.PREVIEW_MODES[i].display_name
                 const w = ctx.measureText(display_name).width
                 ctx.fillStyle = (i === this.preview_id) ? "#800000" : "#404040"
-                ctx.fillRect(left, pos[1] - this.preview_size - arrow_height - tab_bar_height, w+5, tab_bar_height)
+                ctx.fillRect(left, pos[1] - this.preview_size - arrow_height - tab_bar_height - status_bar_height, w+5, tab_bar_height)
                 ctx.fillStyle = "white"
-                ctx.fillText(display_name, left+2, pos[1] - this.preview_size - arrow_height - 4)
+                ctx.fillText(display_name, left+2, pos[1] - this.preview_size - arrow_height - status_bar_height - 4)
                 left+=w+8
             }
             ctx.fillStyle = "white"
-            ctx.fillText("[Tab] to change", left+2, pos[1] - this.preview_size - arrow_height - 4)
+            ctx.fillText("[Tab] to change", left+2, pos[1] - this.preview_size - arrow_height - status_bar_height - 4)
+
+            ctx.fillStyle = "orange"
+            ctx.fillText(`minValue: ${df.minValue().toFixed(2)}, maxValue: ${df.maxValue().toFixed(2)}`, pos[0] - this.preview_size / 2 + 2, pos[1] - arrow_height - 4)
 
             return true // hide default data display
         }
@@ -242,6 +246,7 @@ export class GraphManager {
         }
 
         // calculate output df once, to fill caches
+        /*
         if (this.noiseSettings !== undefined){
             setTimeout(()=>{
                 this.graph.runStep()
@@ -266,7 +271,7 @@ export class GraphManager {
                     }
                 }
             }, 0)
-        }
+        }*/
 
         this.graph.start(50)
         this.has_change = false

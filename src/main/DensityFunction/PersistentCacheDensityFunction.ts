@@ -11,7 +11,7 @@ export class PersistentCacheDensityFunction extends DensityFunction{
     }
 
     public compute(context: DensityFunction.Context): number {
-        const context_string = `${context.x} ${context.y} ${context.z}`
+        const context_string = `${context.x.toFixed(2)} ${context.y.toFixed(2)} ${context.z.toFixed(2)}`
         if (this.cache.has(context_string)){
             return this.cache.get(context_string)
         } else {
