@@ -1,7 +1,10 @@
 import { DensityFunction, WorldgenRegistries } from "deepslate";
 import { IContextMenuItem, INodeInputSlot, IWidget, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
 import { PersistentCacheDensityFunction } from "../DensityFunction/PersistentCacheDensityFunction";
+import { GraphManager } from "../UI/GraphManager";
 import { MenuManager } from "../UI/MenuManager";
+import { Warning } from "../Warning";
+import { WarningWidget } from "../widgets/WarningWidget";
 import { LGraphNodeFixed } from "./LGraphNodeFixed";
 
 const spline_values = ["offset", "factor", "jaggedness"]
@@ -16,11 +19,14 @@ export class DensityFunctionNode extends LGraphNodeFixed{
 
     private has_change: boolean = false
     private df: DensityFunction = undefined
+    public warning: Warning = undefined
 
     constructor(private name: string, args: Map<string, string>){
         super()
 
         this.input_names = []
+
+        this.addCustomWidget(new WarningWidget())
 
         args.forEach((type, argument) => {
             if (type === "densityFunction"){
@@ -39,7 +45,7 @@ export class DensityFunctionNode extends LGraphNodeFixed{
                     this.has_change = true
                 }, {values: spline_values})
             } else if (type === "noise") {
-                this.addProperty(argument, 0, "string")
+                this.addProperty(argument, WorldgenRegistries.NOISE.keys()[0].toString(), "string")
                 this.wdgs[argument] = this.addWidget("combo", argument, WorldgenRegistries.NOISE.keys()[0].toString(), (value) => {
                     this.properties[argument] = value
                     this.has_change = true
@@ -65,17 +71,18 @@ export class DensityFunctionNode extends LGraphNodeFixed{
     }
 
     onConnectionsChange(){
-        this.color = this.inputs.filter(i => !i.link).length > 0 ? "#330000" : "#000033"
+        this.color = this.inputs.filter(i => !i.link).length > 0 ? "#330000" : ((this.warning?.getWarning() ?? "") !== "" ? "#333300" : "#000033") 
         this.has_change = true
     }
 
     onExecute(){
-        this.color = this.inputs.filter(i => !i.link).length > 0 ? "#330000" : "#000033"
+        this.color = this.inputs.filter(i => !i.link).length > 0 ? "#330000" : ((this.warning?.getWarning() ?? "") !== "" ? "#333300" : "#000033") 
         const input_jsons: Record<string, unknown> = {};
         const input_dfs: Record<string, DensityFunction> = {};
         var error = false
         var input_has_error = false
         var input_has_changed = false
+        ;(this as any).setSize(this.computeSize())
         this.input_names.forEach((input) => {
             const i = this.getInputDataByName(input)
             if (i === undefined){
@@ -90,7 +97,8 @@ export class DensityFunctionNode extends LGraphNodeFixed{
         })
 
         if (this.df === undefined || this.has_change || input_has_changed){
-            this.df = new PersistentCacheDensityFunction(DensityFunction.fromJson({type: this.name, ...this.properties, ...input_dfs}, (obj) => obj as DensityFunction))
+            this.df = new PersistentCacheDensityFunction(GraphManager.visitor(DensityFunction.fromJson({type: this.name, ...this.properties, ...input_dfs}, (obj) => obj as DensityFunction)))
+            this.warning = Warning.create(this.df)
         }
 
         this.setOutputData(0, {

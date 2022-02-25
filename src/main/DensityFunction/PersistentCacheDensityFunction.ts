@@ -42,4 +42,8 @@ export class PersistentCacheDensityFunction extends DensityFunction{
         const max = this.wrapped.maxValue()
         return max
     }
+
+    public getWrapped(): DensityFunction | undefined{
+        return this.wrapped
+    }
 }

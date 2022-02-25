@@ -24,7 +24,8 @@ export class GraphManager {
 
     static oldJson: unknown = {}
 
-    static noiseSettings: NoiseSettings = undefined
+    static noiseSettings: NoiseSettings
+    static visitor: DensityFunction.Visitor
 
     private static currentLink: LLink = undefined
     private static preview_canvas: HTMLCanvasElement
@@ -35,6 +36,8 @@ export class GraphManager {
     static init() {
         LiteGraph.clearRegisteredTypes() // don't use default node types
         registerNodes()
+
+        this.setNoiseSettings(DatapackManager.noise_settings.get("minecraft:overworld"))
 
         this.preview_canvas = document.createElement("canvas")
 
@@ -79,10 +82,10 @@ export class GraphManager {
             ctx.fill()
             ctx.stroke()
 
-            if (this.noiseSettings !== undefined) {
+            /*if (this.noiseSettings !== undefined) {
                 const visitor = NoiseRouter.createVisitor(XoroshiroRandom.create(BigInt(0)).forkPositional(), this.noiseSettings)
                 df = df.mapAll(visitor)
-            }
+            }*/
 
             if (this.currentLink !== link) {
                 this.currentLink = link
@@ -188,6 +191,11 @@ export class GraphManager {
         this.graph.beforeChange = (_info?: LGraphNode) => {
             this.has_change = true
         }
+    }
+
+    static setNoiseSettings(ns: NoiseSettings){
+        this.noiseSettings = ns
+        this.visitor = NoiseRouter.createVisitor(XoroshiroRandom.create(BigInt(0)).forkPositional(), ns)
     }
 
     static hasChanged() {

@@ -2,8 +2,8 @@ import { DatapackManager } from './DatapackManager';
 import { GraphManager } from './UI/GraphManager';
 import { MenuManager } from './UI/MenuManager';
 
-onload = () => {
+onload = async () => {
     MenuManager.addHandlers()
-    DatapackManager.init()
+    await DatapackManager.init()
     GraphManager.init()
 }

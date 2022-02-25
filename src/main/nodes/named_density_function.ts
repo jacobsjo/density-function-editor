@@ -51,7 +51,7 @@ export class NamedDensityFunctionNode extends LGraphNodeFixed{
 
     onExecute(){
         if (this.df === undefined || this.has_change){
-            this.df = new PersistentCacheDensityFunction(WorldgenRegistries.DENSITY_FUNCTION.get(Identifier.parse(this.properties.id)) ? new DensityFunction.HolderHolder(Holder.reference(WorldgenRegistries.DENSITY_FUNCTION, Identifier.parse(this.properties.id))) : DensityFunction.Constant.ZERO)
+            this.df = new PersistentCacheDensityFunction(WorldgenRegistries.DENSITY_FUNCTION.get(Identifier.parse(this.properties.id)) ? new DensityFunction.HolderHolder(Holder.reference(WorldgenRegistries.DENSITY_FUNCTION, Identifier.parse(this.properties.id))).mapAll(GraphManager.visitor) : DensityFunction.Constant.ZERO)
         }
 
         this.setOutputData(0, {
