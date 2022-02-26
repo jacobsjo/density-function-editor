@@ -3,6 +3,7 @@ export declare class DensityFunctionOutputNode extends LGraphNode {
     static title: string;
     removable: boolean;
     clonable: boolean;
+    block_delete: boolean;
     constructor();
     computeSize(): [number, number];
     getTitle(): string;

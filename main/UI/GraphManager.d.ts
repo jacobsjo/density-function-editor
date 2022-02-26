@@ -28,6 +28,7 @@ export declare class GraphManager {
     };
     static setSaved(): void;
     static loadJSON(json: any, id?: string): boolean;
+    private static updateTitle;
     private static createNodeFromJson;
 }
 //# sourceMappingURL=GraphManager.d.ts.map
