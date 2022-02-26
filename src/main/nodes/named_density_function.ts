@@ -17,11 +17,11 @@ export class NamedDensityFunctionNode extends LGraphNodeFixed{
         super()
         this.addOutput("output","densityFunction", {locked: true, nameLocked: true});
         this.addProperty("id", "", "string")
-        this.wdgt = this.addWidget("combo", "Id", WorldgenRegistries.DENSITY_FUNCTION.keys()[0].toString(), (value) => {
+        this.wdgt = this.addWidget("combo", "Id", WorldgenRegistries.DENSITY_FUNCTION.keys().sort()[0].toString(), (value) => {
             this.properties.id = value
             this.updateColor()
             this.has_change = true
-        }, {values: WorldgenRegistries.DENSITY_FUNCTION.keys().map(df => df.toString())})
+        }, {values: WorldgenRegistries.DENSITY_FUNCTION.keys().sort().map(df => df.toString())})
         this.addWidget("button", "open", "Open", () => {
             DatapackManager.datapack.get("worldgen/density_function", this.properties.id).then(json => GraphManager.loadJSON(json, this.properties.id))
         })

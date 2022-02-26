@@ -45,11 +45,11 @@ export class DensityFunctionNode extends LGraphNodeFixed{
                     this.has_change = true
                 }, {values: spline_values})
             } else if (type === "noise") {
-                this.addProperty(argument, WorldgenRegistries.NOISE.keys()[0].toString(), "string")
+                this.addProperty(argument, WorldgenRegistries.NOISE.keys().sort()[0].toString(), "string")
                 this.wdgs[argument] = this.addWidget("combo", argument, WorldgenRegistries.NOISE.keys()[0].toString(), (value) => {
                     this.properties[argument] = value
                     this.has_change = true
-                }, {values: WorldgenRegistries.NOISE.keys().map(k => k.toString())})
+                }, {values: WorldgenRegistries.NOISE.keys().sort().map(k => k.toString())})
             } else if (type === "sampler_type") {
                 this.addProperty(argument, 0, "string")
                 this.wdgs[argument] = this.addWidget("combo", argument, "type_1", (value) => {
