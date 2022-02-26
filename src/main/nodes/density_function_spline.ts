@@ -24,7 +24,9 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
 
         this.addInput("coordinate", "densityFunction", {label: "coordinate", locked: true, nameLocked: true})
         this.addOutput("output", "densityFunction", {locked: true, nameLocked: true});
-        this.splineWidget = this.addCustomWidget<SplineWidget>(new SplineWidget())  // TODO: set has changed when spline changes
+        this.splineWidget = this.addCustomWidget<SplineWidget>(new SplineWidget(() => {
+            this.has_change = true
+        }))
         this.addProperty("min_value", -1, "number")
         this.wdgs.min_value = this.addWidget("number", "min_value", -1, (value) => {
             this.properties.min_value = value

@@ -3,6 +3,7 @@ import { LiteGraph, LGraph, LGraphCanvas, LGraphNode, IContextMenuOptions, LLink
 import { DatapackManager } from "../DatapackManager";
 import { ConstantDensityFunctionNode } from "../nodes/constant_density_function";
 import { DensityFunctionNode } from "../nodes/density_function";
+import { MultiSplineDensityFunctionNode } from "../nodes/density_function_multi_spline";
 import { DensityFunctionOutputNode } from "../nodes/density_function_output";
 import { SplineDensityFunctionNode } from "../nodes/density_function_spline";
 import { NamedDensityFunctionNode } from "../nodes/named_density_function";
@@ -309,39 +310,62 @@ export class GraphManager {
             this.graph.add(node);
             node.collapse(false)
             return [node, pos[1] + 150]
-        } else if (json.type === "minecraft:spline") {
+        } else if (json.type.replace("minecraft:", "") === "spline") {
             var y = pos[1]
 
-            const node = LiteGraph.createNode("density_function/spline") as SplineDensityFunctionNode
-
-            node.properties.min_value = json.min_value
-            node.properties.max_value = json.max_value
-
-            const locations = []
-            const values = []
-            const derivatives = []
+            var multi_d : boolean = false
             for (const point of json.spline.points) {
                 if (typeof point.value !== "number") {
-                    alert("Multidimenional Splines are not supported (yet)")
-                    throw Error("Multidimenional Splines are not supported (yet)")
+                    multi_d = true
+                    break
                 }
-                locations.push(point.location)
-                values.push(new CubicSpline.Constant(point.value))
-                derivatives.push(point.derivative)
             }
 
-            node.splineWidget.value = new CubicSpline.MultiPoint<number>(IdentityNumberFunction, locations, values, derivatives);
-            node.splineWidget.min_input = locations[0] - 0.1
-            node.splineWidget.max_input = locations[locations.length - 1] + 0.1
+            if (multi_d){
+                const node = new MultiSplineDensityFunctionNode(json)
+                var y = pos[1]
 
-            node.updateWidgets()
+                for (const [input, j] of node.input_jsons) {
+                    if (j !== undefined) {
+                        var n: LGraphNode
+                        [n, y] = this.createNodeFromJson(j, [pos[0] - 250, y])
+                        n.connect(0, node, input)
+                    } else {
+                        console.warn("missing density function " + input)
+                    }
+                }
+                node.pos = [pos[0], (pos[1] + y - 150) / 2];
+                node.mode = LiteGraph.ALWAYS;
+                this.graph.add(node);
+                return [node, y]
+            } else {
+                const node = LiteGraph.createNode("density_function/spline") as SplineDensityFunctionNode
 
-            var n: LGraphNode
-            [n, y] = this.createNodeFromJson(json.spline.coordinate, [pos[0] - 250, y])
-            n.connect(0, node, "coordinate")
-            node.pos = [pos[0], (pos[1] + y - 150) / 2];
-            this.graph.add(node);
-            return [node, y]
+                node.properties.min_value = json.min_value
+                node.properties.max_value = json.max_value
+
+                const locations = []
+                const values = []
+                const derivatives = []
+                for (const point of json.spline.points) {
+                    locations.push(point.location)
+                    values.push(new CubicSpline.Constant(point.value))
+                    derivatives.push(point.derivative)
+                }
+
+                node.splineWidget.value = new CubicSpline.MultiPoint<number>(IdentityNumberFunction, locations, values, derivatives);
+                node.splineWidget.min_input = locations[0] - 0.1
+                node.splineWidget.max_input = locations[locations.length - 1] + 0.1
+
+                node.updateWidgets()
+
+                var n: LGraphNode
+                [n, y] = this.createNodeFromJson(json.spline.coordinate, [pos[0] - 250, y])
+                n.connect(0, node, "coordinate")
+                node.pos = [pos[0], (pos[1] + y - 150) / 2];
+                this.graph.add(node);
+                return [node, y]
+            }
         } else if (json.type) {
             const node = LiteGraph.createNode("density_function/" + (json.type.replace("minecraft:", ""))) as DensityFunctionNode
             var y = pos[1]

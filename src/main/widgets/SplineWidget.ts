@@ -25,6 +25,10 @@ export class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>>{
 
     private node: LGraphNode
 
+    constructor(
+        public onChange?: () => void
+    ){}
+
     draw(ctx: CanvasRenderingContext2D, node: LGraphNode, width: number, posY: number, _height: number): void {
         this.node = node
 
@@ -125,13 +129,16 @@ export class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>>{
                 const distance = (x - pos[0])*(x - pos[0]) + (y - pos[1])*(y - pos[1])
                 if (distance < 100){
                     if (this.selected_id == i && (new Date().getTime() - this.last_click_time)< 500 && this.value.locations.length > 1){
+                        // delete point
                         this.value.locations.splice(i, 1)
                         this.value.values.splice(i, 1)
                         this.value.derivatives.splice(i, 1)
                         this.dragging_id = -1
                         this.selected_id = -1
+                        this.onChange?.()
                         return false
                     } else {
+                        // start dagging point
                         this.dragging_id = i
                         this.selected_id = i
                         this.dragging_derivative = false
@@ -140,6 +147,7 @@ export class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>>{
                         return false
                     }
                 } else if (distance < 1000 && i == this.selected_id){
+                    // start dragging derivative
                     const derivative = this.value.derivatives[i] * (this.max_input - this.min_input) / (this.max_value - this.min_value)
                     const mouse_angle = Math.atan((y - pos[1])/ (-x + pos[0]))
                     const derivative_angle = Math.atan(derivative)
@@ -156,6 +164,7 @@ export class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>>{
             const value = this.posToOutput(pos[1], this.widged_width)
 
             if (Math.abs(this.outputToPos(this.value.compute(location), this.widged_width) - pos[1]) < 10){
+                // create point
                 var index = this.value.locations.findIndex((loc) => loc > location)
                 if (index === -1)
                     index = this.value.locations.length
@@ -166,6 +175,7 @@ export class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>>{
                 this.selected_id = index
                 this.dragging_derivative = false
                 this.stopShrink()
+                this.onChange?.()
                 return false
             }   
 
@@ -173,11 +183,13 @@ export class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>>{
             this.selected_id = -1
         } else if (event.type === "mousemove" && this.dragging_id >= 0){
             if (this.dragging_derivative){
+                // drag derivative
                 const x = this.inputToPos(this.value.locations[this.dragging_id], this.widged_width)
                 const y = this.outputToPos(this.value.values[this.dragging_id].compute(0), this.widged_width)
 
                 this.value.derivatives[this.dragging_id] = (y - pos[1])/ (-x + pos[0]) / (this.max_input - this.min_input) * (this.max_value - this.min_value)
             } else {
+                // drag point
                 if (pos[0] < 0){
                     this.startExpand("left")
                 } else if (pos[0] > this.widged_width + 20){
@@ -213,6 +225,7 @@ export class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>>{
                 this.value.derivatives[this.dragging_id] = derivative
 
             }
+            this.onChange?.()
             return false
         } else if (event.type === "mouseup"){
             this.stopExpand()
