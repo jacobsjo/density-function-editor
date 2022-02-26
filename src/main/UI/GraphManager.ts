@@ -99,8 +99,8 @@ export class GraphManager {
                 const pixels = []
 
                 try {
-                    for (var py = 0; py < this.preview_size; py++) {
-                        for (var px = 0; px < this.preview_size; px++) {
+                    for (var px = 0; px < this.preview_size; px++) {
+                        for (var py = 0; py < this.preview_size; py++) {
                             const x = px / this.preview_size
                             const y = py / this.preview_size
                             const context = preview_mode.getContext(x, y)
@@ -134,12 +134,13 @@ export class GraphManager {
 
                 for (var py = 0; py < this.preview_size; py++) {
                     for (var px = 0; px < this.preview_size; px++) {
-                        const index = py * (this.preview_size) + px;
-                        var color = preview_mode.getColor(pixels[index], min, max)
-                        preview_data.data[index * 4] = color[0]
-                        preview_data.data[index * 4 + 1] = color[1]
-                        preview_data.data[index * 4 + 2] = color[2]
-                        preview_data.data[index * 4 + 3] = 255
+                        const pixel_index = px * (this.preview_size) + py;
+                        var color = preview_mode.getColor(pixels[pixel_index], min, max)
+                        const data_index = (py * (this.preview_size) + px) * 4;
+                        preview_data.data[data_index] = color[0]
+                        preview_data.data[data_index + 1] = color[1]
+                        preview_data.data[data_index + 2] = color[2]
+                        preview_data.data[data_index + 3] = 255
                     }
                 }
 
