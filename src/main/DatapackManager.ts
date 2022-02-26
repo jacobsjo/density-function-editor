@@ -23,18 +23,30 @@ export class DatapackManager {
 
     static async register(datapack: Datapack) {
         for (const df of await datapack.getIds("worldgen/density_function")) {
-            const json = await datapack.get("worldgen/density_function", df)
-            WorldgenRegistries.DENSITY_FUNCTION.register(Identifier.parse(df), DensityFunction.fromJson(json))
+            try{
+                const json = await datapack.get("worldgen/density_function", df)
+                WorldgenRegistries.DENSITY_FUNCTION.register(Identifier.parse(df), DensityFunction.fromJson(json))
+            } catch (e) {
+                console.error(`Could not load density function ${df}: ${e}`)
+            }
         }
 
         for (const n of await datapack.getIds("worldgen/noise")) {
-            const json = await datapack.get("worldgen/noise", n)
-            WorldgenRegistries.NOISE.register(Identifier.parse(n), NoiseParameters.fromJson(json))
+            try{
+                const json = await datapack.get("worldgen/noise", n)
+                WorldgenRegistries.NOISE.register(Identifier.parse(n), NoiseParameters.fromJson(json))
+            } catch (e) {
+                console.error(`Could not load noise ${n}: ${e}`)
+            }
         }
 
         for (const ns of await datapack.getIds("worldgen/noise_settings")) {
-            const json = await datapack.get("worldgen/noise_settings", ns) as any
-            this.noise_settings.set(ns, NoiseSettings.fromJson(json.noise))
+            try{
+                const json = await datapack.get("worldgen/noise_settings", ns) as any
+                this.noise_settings.set(ns, NoiseSettings.fromJson(json.noise))
+            } catch (e) {
+                console.error(`Could not load noise settings ${ns}: ${e}`)
+            }
         }
     }
 
