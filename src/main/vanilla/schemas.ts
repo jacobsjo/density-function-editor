@@ -1,82 +1,113 @@
 export const schemas = new Map(Object.entries({
-    'minecraft:abs': {
+    'abs': {
+        group: "math",
         argument: "densityFunction",
     },
-    'minecraft:add': {
+    'add': {
+        group: "math",
         argument1: "densityFunction",
         argument2: "densityFunction",
     },
-    'minecraft:beardifier': {},
-    'minecraft:blend_alpha': {},
-    'minecraft:blend_density': {
+    'beardifier': {
+        group: "extra"
+    },
+    'blend_alpha': {
+        group: "extra"
+    },
+    'blend_density': {
+        group: "extra",
         argument: "densityFunction",
     },
-    'minecraft:blend_offset': {},
-    'minecraft:cache_2d': {
+    'blend_offset': {
+        group: "extra"
+    },
+    'cache_2d': {
+        group: "cache",
         argument: "densityFunction",
     },
-    'minecraft:cache_all_in_cell': {
+    'cache_all_in_cell': {
+        group: "cache",
         argument: "densityFunction",
     },
-    'minecraft:cache_once': {
+    'cache_once': {
+        group: "cache",
         argument: "densityFunction",
     },
-    'minecraft:clamp': {
+    'clamp': {
+        group: "math",
         input: "densityFunction",
         min: "number",
         max: "number",
     },
-    'minecraft:cube': {
+    'cube': {
+        group: "math",
         argument: "densityFunction",
     },
-    "minecraft:end_islands": {},
-    'minecraft:flat_cache': {
+    "end_islands": {
+        group: "extra"
+    },
+    'flat_cache': {
+        group: "cache",
         argument: "densityFunction",
     },
-    'minecraft:half_negative': {
+    'half_negative': {
+        group: "math",
         argument: "densityFunction",
     },
-    'minecraft:interpolated': {
+    'interpolated': {
+        group: "special",
         argument: "densityFunction",
     },
-    'minecraft:max': {
+    'max': {
+        group: "math",
         argument1: "densityFunction",
         argument2: "densityFunction",
     },
-    'minecraft:min': {
+    'min': {
+        group: "math",
         argument1: "densityFunction",
         argument2: "densityFunction",
     },
-    'minecraft:mul': {
+    'mul': {
+        group: "math",
         argument1: "densityFunction",
         argument2: "densityFunction",
     },
-    'minecraft:noise': {
+    'noise': {
+        group: "input",
         noise: "noise",
         xz_scale: "number",
         y_scale: "number",
     },
-    "minecraft:old_blended_noise": {},
-    'minecraft:quarter_negative': {
+    "old_blended_noise": {
+        group: "input",
+    },
+    'quarter_negative': {
+        group: "math",
         argument: "densityFunction",
     },
-    'minecraft:range_choice': {
+    'range_choice': {
+        group: "special",
         input: "densityFunction",
         min_inclusive: "number",
         max_exclusive: "number",
         when_in_range: "densityFunction",
         when_out_of_range: "densityFunction",
     },
-    'minecraft:shift': {
+    'shift': {
+        group: "input",
         argument: "noise",
     },
-    'minecraft:shift_a': {
+    'shift_a': {
+        group: "input",
         argument: "noise",
     },
-    'minecraft:shift_b': {
+    'shift_b': {
+        group: "input",
         argument: "noise",
     },
-    'minecraft:shifted_noise': {
+    'shifted_noise': {
+        group: "input",
         shift_x: "densityFunction",
         shift_y: "densityFunction",
         shift_z: "densityFunction",
@@ -84,16 +115,20 @@ export const schemas = new Map(Object.entries({
         xz_scale: "number",
         y_scale: "number",
     },
-    'minecraft:slide': {
+    'slide': {
+        group: "extra",
         argument: "densityFunction",
     },
-    'minecraft:square': {
+    'square': {
+        group: "math",
         argument: "densityFunction",
     },
-    'minecraft:squeeze': {
+    'squeeze': {
+        group: "math",
         argument: "densityFunction",
     },
-    'minecraft:terrain_shaper_spline': {
+    'terrain_shaper_spline': {
+        group: "special",
         spline: "spline",
         min_value: "number",
         max_value: "number",
@@ -101,12 +136,14 @@ export const schemas = new Map(Object.entries({
         erosion: "densityFunction",
         weirdness: "densityFunction",
     },
-    'minecraft:weird_scaled_sampler': {
+    'weird_scaled_sampler': {
+        group: "input",
         rarity_value_mapper: "sampler_type",
         noise: "noise",
         input: "densityFunction",
     },
-    'minecraft:y_clamped_gradient': {
+    'y_clamped_gradient': {
+        group: "input",
         from_y: "number",
         to_y: "number",
         from_value: "number",

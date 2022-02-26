@@ -7,19 +7,19 @@ import { NamedDensityFunctionNode } from "./named_density_function";
 
 
 export function registerNodes(){
-    LiteGraph.registerNodeType("density_function/named", NamedDensityFunctionNode );
-    LiteGraph.registerNodeType("density_function/constant", ConstantDensityFunctionNode );
-    LiteGraph.registerNodeType("density_function/spline", SplineDensityFunctionNode );
+    LiteGraph.registerNodeType("special/named", NamedDensityFunctionNode );
+    LiteGraph.registerNodeType("input/constant", ConstantDensityFunctionNode );
+    LiteGraph.registerNodeType("special/spline", SplineDensityFunctionNode );
 
     schemas.forEach((schema, n) => {
         class f extends DensityFunctionNode{
-            static title = n.replace("minecraft:", "")
+            static title = n
 
             constructor(){
                 super(n, new Map(Object.entries(schema)))
             }
         }
-        LiteGraph.registerNodeType("density_function/" + (n.replace("minecraft:", "")), f)
+        LiteGraph.registerNodeType(schema.group + "/" + n, f)
     })
 
 

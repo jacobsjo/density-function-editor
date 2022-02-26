@@ -9,6 +9,7 @@ import { SplineDensityFunctionNode } from "../nodes/density_function_spline";
 import { NamedDensityFunctionNode } from "../nodes/named_density_function";
 import { registerNodes } from "../nodes/register";
 import { IdentityNumberFunction } from "../util";
+import { schemas } from "../vanilla/schemas";
 import { MenuManager } from "./MenuManager";
 import { PreviewMode } from "./PreviewMode";
 
@@ -273,7 +274,7 @@ export class GraphManager {
             if (json in this.named_nodes && this.named_nodes[json].pos[0] <= pos[0] + 400) {
                 return [this.named_nodes[json], pos[1]]
             } else {
-                const node = LiteGraph.createNode("density_function/named");
+                const node = LiteGraph.createNode("special/named");
                 node.properties.id = json
                     ; (node as NamedDensityFunctionNode).updateWidgets()
                 node.pos = pos;
@@ -283,7 +284,7 @@ export class GraphManager {
                 return [node, pos[1] + 150]
             }
         } else if (typeof json === "number") {
-            const node = LiteGraph.createNode("density_function/constant");
+            const node = LiteGraph.createNode("input/constant");
             node.properties.value = json
                 ; (node as ConstantDensityFunctionNode).updateWidgets()
             node.pos = pos;
@@ -319,7 +320,7 @@ export class GraphManager {
                 this.graph.add(node);
                 return [node, y]
             } else {
-                const node = LiteGraph.createNode("density_function/spline") as SplineDensityFunctionNode
+                const node = LiteGraph.createNode("special/spline") as SplineDensityFunctionNode
 
                 node.properties.min_value = json.min_value
                 node.properties.max_value = json.max_value
@@ -347,7 +348,8 @@ export class GraphManager {
                 return [node, y]
             }
         } else if (json.type) {
-            const node = LiteGraph.createNode("density_function/" + (json.type.replace("minecraft:", ""))) as DensityFunctionNode
+            const type = json.type.replace("minecraft:", "")
+            const node = LiteGraph.createNode( schemas.get(type).group + "/" + type ) as DensityFunctionNode
             var y = pos[1]
             if (node) {
                 for (const property in node.properties) {

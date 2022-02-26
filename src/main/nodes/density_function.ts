@@ -29,6 +29,8 @@ export class DensityFunctionNode extends LGraphNodeFixed{
         this.addCustomWidget(new WarningWidget())
 
         args.forEach((type, argument) => {
+            if (argument === "type") return
+            
             if (type === "densityFunction"){
                 this.addInput(argument, "densityFunction", {label: argument, locked: true, nameLocked: true})
                 this.input_names.push(argument)
