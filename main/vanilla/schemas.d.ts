@@ -1,4 +1,5 @@
 export declare const schemas: Map<string, {
+    group: string;
     argument: string;
     argument1?: undefined;
     argument2?: undefined;
@@ -27,6 +28,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument1: string;
     argument2: string;
     argument?: undefined;
@@ -55,6 +57,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument?: undefined;
     argument1?: undefined;
     argument2?: undefined;
@@ -83,6 +86,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument?: undefined;
     argument1?: undefined;
     argument2?: undefined;
@@ -111,6 +115,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument: string;
     argument1?: undefined;
     argument2?: undefined;
@@ -139,6 +144,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument?: undefined;
     argument1?: undefined;
     argument2?: undefined;
@@ -167,6 +173,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument: string;
     argument1?: undefined;
     argument2?: undefined;
@@ -195,6 +202,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument: string;
     argument1?: undefined;
     argument2?: undefined;
@@ -223,6 +231,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument: string;
     argument1?: undefined;
     argument2?: undefined;
@@ -251,6 +260,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     input: string;
     min: string;
     max: string;
@@ -279,6 +289,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument: string;
     argument1?: undefined;
     argument2?: undefined;
@@ -307,6 +318,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument?: undefined;
     argument1?: undefined;
     argument2?: undefined;
@@ -335,6 +347,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument: string;
     argument1?: undefined;
     argument2?: undefined;
@@ -363,6 +376,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument: string;
     argument1?: undefined;
     argument2?: undefined;
@@ -391,6 +405,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument: string;
     argument1?: undefined;
     argument2?: undefined;
@@ -419,6 +434,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument1: string;
     argument2: string;
     argument?: undefined;
@@ -447,6 +463,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument1: string;
     argument2: string;
     argument?: undefined;
@@ -475,6 +492,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument1: string;
     argument2: string;
     argument?: undefined;
@@ -503,6 +521,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     noise: string;
     xz_scale: string;
     y_scale: string;
@@ -531,6 +550,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument?: undefined;
     argument1?: undefined;
     argument2?: undefined;
@@ -559,6 +579,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument: string;
     argument1?: undefined;
     argument2?: undefined;
@@ -587,6 +608,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     input: string;
     min_inclusive: string;
     max_exclusive: string;
@@ -615,6 +637,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument: string;
     argument1?: undefined;
     argument2?: undefined;
@@ -643,6 +666,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument: string;
     argument1?: undefined;
     argument2?: undefined;
@@ -671,6 +695,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument: string;
     argument1?: undefined;
     argument2?: undefined;
@@ -699,6 +724,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     shift_x: string;
     shift_y: string;
     shift_z: string;
@@ -727,6 +753,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument: string;
     argument1?: undefined;
     argument2?: undefined;
@@ -755,6 +782,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument: string;
     argument1?: undefined;
     argument2?: undefined;
@@ -783,6 +811,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     argument: string;
     argument1?: undefined;
     argument2?: undefined;
@@ -811,6 +840,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     spline: string;
     min_value: string;
     max_value: string;
@@ -839,6 +869,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     rarity_value_mapper: string;
     noise: string;
     input: string;
@@ -867,6 +898,7 @@ export declare const schemas: Map<string, {
     from_value?: undefined;
     to_value?: undefined;
 } | {
+    group: string;
     from_y: string;
     to_y: string;
     from_value: string;
