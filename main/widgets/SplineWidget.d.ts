@@ -1,6 +1,7 @@
 import { CubicSpline } from 'deepslate';
 import { IWidget, LGraphNode, Vector2 } from 'litegraph.js';
 export declare class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>> {
+    onChange?: () => void;
     name: string;
     value: CubicSpline.MultiPoint<number>;
     min_input: number;
@@ -15,6 +16,7 @@ export declare class SplineWidget implements IWidget<CubicSpline.MultiPoint<numb
     private dragging_derivative;
     private last_click_time;
     private node;
+    constructor(onChange?: () => void);
     draw(ctx: CanvasRenderingContext2D, node: LGraphNode, width: number, posY: number, _height: number): void;
     private posToInput;
     private inputToPos;
