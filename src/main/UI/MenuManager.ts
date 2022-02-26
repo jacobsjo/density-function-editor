@@ -111,6 +111,10 @@ export class MenuManager {
     }
 
     static async save(id?: string, suggested_id?: string): Promise<string> {
+        if (DatapackManager.datapack.canSave()){
+            DatapackManager.datapack.prepareSave()
+        }
+        
         const output = GraphManager.getOutput()
         if (output.error && !confirm("Some nodes have unconnected inputs, the resulting JSON will be invalid. Continue?")) 
             return undefined
