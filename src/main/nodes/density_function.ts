@@ -37,7 +37,7 @@ export class DensityFunctionNode extends LGraphNodeFixed{
                 this.wdgs[argument] = this.addWidget("number", argument, 0, (value) => {
                     this.properties[argument] = value
                     this.has_change = true
-                })
+                },{ min: -1000000, max: 1000000})
             } else if (type === "spline") {
                 this.addProperty(argument, 0, "string")
                 this.wdgs[argument] = this.addWidget("combo", argument, "offset", (value) => {
@@ -97,7 +97,7 @@ export class DensityFunctionNode extends LGraphNodeFixed{
         })
 
         if (this.df === undefined || this.has_change || input_has_changed){
-            this.df = new PersistentCacheDensityFunction(GraphManager.visitor(DensityFunction.fromJson({type: this.name, ...this.properties, ...input_dfs}, (obj) => obj as DensityFunction)))
+            this.df = new PersistentCacheDensityFunction(GraphManager.visitor.apply(DensityFunction.fromJson({type: this.name, ...this.properties, ...input_dfs}, (obj) => obj as DensityFunction)))
             this.warning = Warning.create(this.df)
         }
 

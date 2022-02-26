@@ -131,21 +131,26 @@ export class DatapackManager{
         for (var i = folders.length - 1 ; i >= 1 ; i--){
             const ns = this.noise_settings.get(`${namespace}:${folders.slice(0, i).join("/")}`)
             if (ns !== undefined){
-                console.log(`by name: ${namespace}:${folders.slice(0, i).join("/")}`)
-                console.log(this.noise_settings)
                 return ns
             }
         }
 
         const ns_in_namespace = Array.from(this.noise_settings.keys()).filter(id => id.split(":", 2)[0] === namespace)
         if (ns_in_namespace.length === 1){
-            console.log(`by namespace ${ns_in_namespace[0]}`)
             return this.noise_settings.get(ns_in_namespace[0])
         } else if (ns_in_namespace.length > 1){
             return ns_in_namespace[0]
         } 
 
-        console.log(`no noise settings found`)
+        const noise_setting_keys = Array.from(this.noise_settings.keys())
+        for (var i = folders.length - 1 ; i >= 1 ; i--){
+            const ns_id = noise_setting_keys.find(ns_id => ns_id.match(`^[^\/:]+:${folders.slice(0, i).join("/")}$` ))
+            const ns = this.noise_settings.get(ns_id)
+            if (ns !== undefined){
+                return ns
+            }
+        }
+
         return ""
     }
 
