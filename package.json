@@ -13,18 +13,20 @@
   "author": "Jochen Jacobs",
   "license": "MIT",
   "devDependencies": {
+    "@types/wicg-file-system-access": "^2020.9.4",
     "copy-webpack-plugin": "^9.0.1",
     "gh-pages": "^3.2.3",
     "ts-loader": "^9.2.5",
     "typescript": "^4.4.3",
     "webpack": "^5.52.1",
     "webpack-cli": "^4.8.0",
-    "webpack-dev-server": "^4.2.1",
-    "@types/wicg-file-system-access": "^2020.9.4"
+    "webpack-dev-server": "^4.2.1"
   },
   "dependencies": {
+    "buffer": "^6.0.3",
+    "comment-json": "4.2.2",
     "deepslate": "0.9.0-beta.10",
-    "litegraph.js": "^0.7.10",
-    "mc-datapack-loader": "0.1.0"
+    "mc-datapack-loader": "0.1.0",
+    "litegraph.js": "^0.7.10"
   }
 }

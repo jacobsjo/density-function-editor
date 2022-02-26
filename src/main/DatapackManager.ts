@@ -42,7 +42,7 @@ export class DatapackManager {
 
         for (const ns of await datapack.getIds("worldgen/noise_settings")) {
             try{
-                const json = await datapack.get("worldgen/noise_settings", ns) as any
+                const json: any = await datapack.get("worldgen/noise_settings", ns)
                 this.noise_settings.set(ns, NoiseSettings.fromJson(json.noise))
             } catch (e) {
                 console.error(`Could not load noise settings ${ns}: ${e}`)
