@@ -5,7 +5,7 @@ export class DensityFunctionOutputNode extends LGraphNode{
     static title = "Output"
     removable: boolean;
     clonable: boolean;
-    //static removable = false
+    block_delete: boolean;
 
     constructor(){
         super()
@@ -13,6 +13,7 @@ export class DensityFunctionOutputNode extends LGraphNode{
         this.color = "#330000"
         this.addInput("result", "densityFunction", {label: "result", locked: true, nameLocked: true})
         this.removable = false
+        this.block_delete = true
         this.clonable = false
     }
 
