@@ -49,6 +49,11 @@ export class NamedDensityFunctionNode extends LGraphNodeFixed{
         return this.title;
     };
 
+    onReload(){
+        this.wdgt.options.values = WorldgenRegistries.DENSITY_FUNCTION.keys().sort().map(df => df.toString())
+        this.has_change = true
+    }
+
     onExecute(){
         if (this.df === undefined || this.has_change){
             this.df = new PersistentCacheDensityFunction(WorldgenRegistries.DENSITY_FUNCTION.get(Identifier.parse(this.properties.id)) ? new DensityFunction.HolderHolder(Holder.reference(WorldgenRegistries.DENSITY_FUNCTION, Identifier.parse(this.properties.id))).mapAll(GraphManager.visitor) : DensityFunction.Constant.ZERO)

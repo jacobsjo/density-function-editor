@@ -1,4 +1,4 @@
-import { CubicSpline, DensityFunction, NoiseRouter, Noises, NoiseSettings, XoroshiroRandom } from "deepslate";
+import { CubicSpline, DensityFunction, Identifier, NoiseRouter, Noises, NoiseSettings, XoroshiroRandom } from "deepslate";
 import { LiteGraph, LGraph, LGraphCanvas, LGraphNode, IContextMenuOptions, LLink } from "litegraph.js";
 import { DatapackManager } from "../DatapackManager";
 import { ConstantDensityFunctionNode } from "../nodes/constant_density_function";
@@ -12,6 +12,7 @@ import { IdentityNumberFunction } from "../util";
 import { schemas } from "../vanilla/schemas";
 import { MenuManager } from "./MenuManager";
 import { PreviewMode } from "./PreviewMode";
+import * as toastr from "toastr"
 
 export class GraphManager {
     static output_node: LGraphNode
@@ -26,7 +27,7 @@ export class GraphManager {
 
     static oldJson: unknown = {}
 
-    static noiseSettings: NoiseSettings
+    static noiseSettings: Identifier
     static visitor: DensityFunction.Visitor
 
     private static currentLink: LLink = undefined
@@ -39,7 +40,7 @@ export class GraphManager {
         LiteGraph.clearRegisteredTypes() // don't use default node types
         registerNodes()
 
-        this.setNoiseSettings(DatapackManager.noise_settings.get("minecraft:overworld"))
+        this.setNoiseSettings(Identifier.parse("minecraft:overworld"))
 
         this.preview_canvas = document.createElement("canvas")
 
@@ -59,7 +60,7 @@ export class GraphManager {
 
             const pos = (link as any)._pos;
             const data = (link as any).data;
-            const preview_mode: PreviewMode = new (PreviewMode.PREVIEW_MODES[this.preview_id])(NoiseSettings.cellWidth(this.noiseSettings))
+            const preview_mode: PreviewMode = new (PreviewMode.PREVIEW_MODES[this.preview_id])(NoiseSettings.cellWidth(DatapackManager.noise_settings.get(this.noiseSettings.toString())))
 
             if (data === undefined || data.df === undefined) {
                 return
@@ -196,9 +197,9 @@ export class GraphManager {
         }
     }
 
-    static setNoiseSettings(ns: NoiseSettings){
+    static setNoiseSettings(ns: Identifier){
         this.noiseSettings = ns
-        this.visitor = new NoiseRouter.Visitor(XoroshiroRandom.create(BigInt(0)).forkPositional(), ns)
+        this.visitor = new NoiseRouter.Visitor(XoroshiroRandom.create(BigInt(0)).forkPositional(), DatapackManager.noise_settings.get(ns.toString()))
     }
 
     static hasChanged() {
@@ -264,6 +265,17 @@ export class GraphManager {
         this.updateTitle()
 
         return true
+    }
+
+    public static reload(){
+        if (!DatapackManager.noise_settings.has(this.noiseSettings.toString())){
+            toastr.warning(`falling back to minecraft:overworld; reopen file to change`,`The used noise settings ${this.noiseSettings.toString()} were removed`)
+            this.noiseSettings = Identifier.parse("minecraft:overworld")
+        }
+
+        this.setNoiseSettings(this.noiseSettings)
+
+        this.graph.sendEventToAllNodes("onReload", [])
     }
 
     private static updateTitle(){
@@ -377,7 +389,7 @@ export class GraphManager {
             this.graph.add(node);
             return [node, y]
         } else {
-            throw new Error("could not load density function " + JSON.stringify(json))
+            throw new Error("could not load Density function " + JSON.stringify(json))
         }
     }
 }

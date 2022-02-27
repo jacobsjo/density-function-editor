@@ -17,6 +17,7 @@ export class DensityFunctionNode extends LGraphNodeFixed{
 
     public input_names: string[]
     private wdgs: {[key: string]: IWidget} = {}
+    private noiseWdgs: IWidget[] = []
 
     private has_change: boolean = false
     private df: DensityFunction = undefined
@@ -53,6 +54,7 @@ export class DensityFunctionNode extends LGraphNodeFixed{
                     this.properties[argument] = value
                     this.has_change = true
                 }, {values: WorldgenRegistries.NOISE.keys().sort().map(k => k.toString())})
+                this.noiseWdgs.push(this.wdgs[argument])
             } else if (type === "sampler_type") {
                 this.addProperty(argument, 0, "string")
                 this.wdgs[argument] = this.addWidget("combo", argument, "type_1", (value) => {
@@ -71,6 +73,15 @@ export class DensityFunctionNode extends LGraphNodeFixed{
         for (const property in this.properties){
             this.wdgs[property].value = this.properties[property]
         }
+    }
+
+    onReload(){
+        this.noiseWdgs.forEach(wdg => {
+            console.log(wdg.options)
+            wdg.options.values = WorldgenRegistries.NOISE.keys().sort().map(k => k.toString())
+            console.log(wdg.options)
+        })
+        this.has_change = true
     }
 
     onConnectionsChange(){

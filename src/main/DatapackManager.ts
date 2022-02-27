@@ -14,37 +14,40 @@ export class DatapackManager {
 
     static async init() {
         this.vanilla_datapack = await ZipDatapack.fromUrl("./data/vanilla_datapack_1_18_2.zip")
-        await this.register(this.vanilla_datapack)
         this.datapack = new CompositeDatapack([this.vanilla_datapack])
+        await this.reload()
     }
 
     static async openDatapack(datapack: Datapack) {
         this.datapack.readers = [this.vanilla_datapack, datapack]
-        await this.register(datapack)
+        await this.reload()
     }
 
-    static async register(datapack: Datapack) {
-        for (const df of await datapack.getIds("worldgen/density_function")) {
+    static async reload() {
+        WorldgenRegistries.DENSITY_FUNCTION.clear()
+        for (const df of await this.datapack.getIds("worldgen/density_function")) {
             try{
-                const json = await datapack.get("worldgen/density_function", df)
+                const json = await this.datapack.get("worldgen/density_function", df)
                 WorldgenRegistries.DENSITY_FUNCTION.register(Identifier.parse(df), DensityFunction.fromJson(json))
             } catch (e) {
                 toastr.error(e, `Could not load density function ${df}`)
             }
         }
 
-        for (const n of await datapack.getIds("worldgen/noise")) {
+        WorldgenRegistries.NOISE.clear()
+        for (const n of await this.datapack.getIds("worldgen/noise")) {
             try{
-                const json = await datapack.get("worldgen/noise", n)
+                const json = await this.datapack.get("worldgen/noise", n)
                 WorldgenRegistries.NOISE.register(Identifier.parse(n), NoiseParameters.fromJson(json))
             } catch (e) {
                 toastr.error(e, `Could not load noise ${n}`)
             }
         }
 
-        for (const ns of await datapack.getIds("worldgen/noise_settings")) {
+        this.noise_settings.clear()
+        for (const ns of await this.datapack.getIds("worldgen/noise_settings")) {
             try{
-                const json: any = await datapack.get("worldgen/noise_settings", ns)
+                const json: any = await this.datapack.get("worldgen/noise_settings", ns)
                 this.noise_settings.set(ns, NoiseSettings.fromJson(json.noise))
             } catch (e) {
                 toastr.error(e, `Could not load noise settings ${ns}`)
@@ -74,14 +77,17 @@ export class DatapackManager {
                                 has_submenu: false,
                                 callback: () => {
                                     var ns = this.tryGetNoiseSettingsFromDensityFunction(df.toString())
-                                    if (typeof ns === "string") {
-                                        ns = this.noise_settings.get(prompt("Which noise settings should be used?", ns))
-                                        if (ns === undefined) {
+                                    console.log(ns)
+                                    if (Array.isArray(ns)) {
+                                        ns = prompt("Which noise settings should be used?", ns[0])
+                                        if (!this.noise_settings.has(ns)) {
                                             toastr.warning(`using minecraft:overworld`, `Noise settings unknown`)
-                                            ns = this.noise_settings.get("minecraft:overworld")
+                                            ns = "minecraft:overworld"
                                         }
+                                    } else {
+                                        toastr.info(`using noise settings ${ns}`)
                                     }
-                                    GraphManager.setNoiseSettings(ns)
+                                    GraphManager.setNoiseSettings(Identifier.parse(ns))
                                     this.datapack.get("worldgen/density_function", df.toString()).then(json => GraphManager.loadJSON(json, df.toString()))
                                 }
                             }
@@ -105,7 +111,7 @@ export class DatapackManager {
                                             has_submenu: false,
                                             callback: () => {
                                                 this.datapack.get("worldgen/noise_settings", ns).then((json: any) => {
-                                                    GraphManager.setNoiseSettings(NoiseSettings.fromJson(json.noise))
+                                                    GraphManager.setNoiseSettings(Identifier.parse(ns))
                                                     GraphManager.loadJSON(json.noise_router[field], ns + "/" + field)
                                                 })
                                             }
@@ -120,38 +126,33 @@ export class DatapackManager {
         }]
     }
 
-    static tryGetNoiseSettingsFromDensityFunction(df_id: string) {
+    static tryGetNoiseSettingsFromDensityFunction(df_id: string): string | string[] {
         const [namespace, path] = df_id.split(":", 2)
         const folders = path.split("/")
 
         for (var i = folders.length - 1; i >= 1; i--) {
-            const ns = this.noise_settings.get(`${namespace}:${folders.slice(0, i).join("/")}`)
-            if (ns !== undefined) {
-                toastr.info(`using noise settings ${namespace}:${folders.slice(0, i).join("/")}`)
-
-                return ns
+            const ns_name = `${namespace}:${folders.slice(0, i).join("/")}`
+            if (this.noise_settings.has(ns_name)){
+                return ns_name
             }
         }
 
         const ns_in_namespace = Array.from(this.noise_settings.keys()).filter(id => id.split(":", 2)[0] === namespace)
         if (ns_in_namespace.length === 1) {
-            toastr.info(`using noise settings ${ns_in_namespace[0]}`)
-            return this.noise_settings.get(ns_in_namespace[0])
-        } else if (ns_in_namespace.length > 1) {
             return ns_in_namespace[0]
+        } else if (ns_in_namespace.length > 1) {
+            return ns_in_namespace
         }
 
         const noise_setting_keys = Array.from(this.noise_settings.keys())
         for (var i = folders.length - 1; i >= 1; i--) {
-            const ns_id = noise_setting_keys.find(ns_id => ns_id.match(`^[^\/:]+:${folders.slice(0, i).join("/")}$`))
-            const ns = this.noise_settings.get(ns_id)
-            if (ns !== undefined) {
-                toastr.info(`using noise settings ${ns_id}`)
-                return ns
+            const ns_name = noise_setting_keys.find(ns_id => ns_id.match(`^[^\/:]+:${folders.slice(0, i).join("/")}$`))
+            if (ns_name !== undefined){
+                return ns_name
             }
         }
 
-        return ""
+        return []
     }
 
     static async datapackSave(jsonString: string, id: string) {

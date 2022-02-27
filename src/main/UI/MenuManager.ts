@@ -116,6 +116,12 @@ export class MenuManager {
         this.save_button.onclick = async () => {
             await this.save(GraphManager.id)
         }
+
+        document.getElementById("menu-button-reload").onclick = async () => {
+            await DatapackManager.reload()
+            GraphManager.reload()
+            toastr.success("Reload successfull")
+        }
     }
 
     static async save(id?: string, suggested_id?: string): Promise<string> {
