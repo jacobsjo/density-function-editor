@@ -6,6 +6,7 @@ import { MenuManager } from "../UI/MenuManager";
 import { Warning } from "../Warning";
 import { WarningWidget } from "../widgets/WarningWidget";
 import { LGraphNodeFixed } from "./LGraphNodeFixed";
+import * as toastr from "toastr"
 
 const spline_values = ["offset", "factor", "jaggedness"]
 const sampler_types = ["type_1", "type_2"]
@@ -99,8 +100,14 @@ export class DensityFunctionNode extends LGraphNodeFixed{
         })
 
         if (this.df === undefined || this.has_change || input_has_changed){
-            this.df = new PersistentCacheDensityFunction(GraphManager.visitor.map(DensityFunction.fromJson({type: this.name, ...this.properties, ...input_dfs}, (obj) => obj as DensityFunction)))
-            this.warning = Warning.create(this.df)
+            try{
+                this.df = new PersistentCacheDensityFunction(GraphManager.visitor.map(DensityFunction.fromJson({type: this.name, ...this.properties, ...input_dfs}, (obj) => obj as DensityFunction)))
+                this.warning = Warning.create(this.df)
+            } catch (e) {
+                toastr.error(e, "Density Function Error")
+                this.df = DensityFunction.Constant.ZERO
+                console.warn(e)
+            }
         }
 
         this.setOutputData(0, {

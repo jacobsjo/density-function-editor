@@ -13,6 +13,7 @@
   "author": "Jochen Jacobs",
   "license": "MIT",
   "devDependencies": {
+    "@types/toastr": "^2.1.39",
     "@types/wicg-file-system-access": "^2020.9.4",
     "copy-webpack-plugin": "^9.0.1",
     "gh-pages": "^3.2.3",
@@ -26,7 +27,8 @@
     "buffer": "^6.0.3",
     "comment-json": "4.2.2",
     "deepslate": "0.9.0-beta.10",
-    "mc-datapack-loader": "0.1.0",
-    "litegraph.js": "^0.7.10"
+    "litegraph.js": "^0.7.10",
+    "mc-datapack-loader": "file://",
+    "toastr": "^2.1.4"
   }
 }

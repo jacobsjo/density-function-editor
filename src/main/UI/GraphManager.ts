@@ -253,7 +253,7 @@ export class GraphManager {
             n.connect(0, this.output_node, 0)
             this.output_node.pos = [900, y / 2];
         } catch (e) {
-            console.warn(e)
+            toastr.warning(e, "Could not load Denisty Function")
             this.output_node.pos = [900, 400];
         }
 
@@ -313,7 +313,7 @@ export class GraphManager {
                         [n, y] = this.createNodeFromJson(j, [pos[0] - 250, y])
                         n.connect(0, node, input)
                     } else {
-                        console.warn("missing density function " + input)
+                        toastr.error(input, `Density function not recognices`)
                     }
                 }
                 node.pos = [pos[0], (pos[1] + y - 150) / 2];
@@ -357,7 +357,7 @@ export class GraphManager {
                     if (json[property] !== undefined) {
                         node.properties[property] = json[property]
                     } else {
-                        console.warn("missing property " + property)
+                        toastr.warning(property, `Density function ${type} is missing properties`)
                     }
                 }
                 node.updateWidgets()
@@ -369,7 +369,7 @@ export class GraphManager {
                         [n, y] = this.createNodeFromJson(json[input], [pos[0] - 250, y])
                         n.connect(0, node, input)
                     } else {
-                        console.warn("missing density function " + input)
+                        toastr.warning(input, `Density function ${type} is missing properties`)
                     }
                 }
             }

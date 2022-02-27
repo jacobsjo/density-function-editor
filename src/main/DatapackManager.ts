@@ -5,6 +5,8 @@ import { GraphManager } from "./UI/GraphManager";
 
 import { noise_router_fields } from "./vanilla/schemas";
 
+import * as toastr from "toastr";
+
 export class DatapackManager {
     static datapack: CompositeDatapack
     static vanilla_datapack: Datapack
@@ -27,7 +29,7 @@ export class DatapackManager {
                 const json = await datapack.get("worldgen/density_function", df)
                 WorldgenRegistries.DENSITY_FUNCTION.register(Identifier.parse(df), DensityFunction.fromJson(json))
             } catch (e) {
-                console.error(`Could not load density function ${df}: ${e}`)
+                toastr.error(e, `Could not load density function ${df}`)
             }
         }
 
@@ -36,7 +38,7 @@ export class DatapackManager {
                 const json = await datapack.get("worldgen/noise", n)
                 WorldgenRegistries.NOISE.register(Identifier.parse(n), NoiseParameters.fromJson(json))
             } catch (e) {
-                console.error(`Could not load noise ${n}: ${e}`)
+                toastr.error(e, `Could not load noise ${n}`)
             }
         }
 
@@ -45,7 +47,7 @@ export class DatapackManager {
                 const json: any = await datapack.get("worldgen/noise_settings", ns)
                 this.noise_settings.set(ns, NoiseSettings.fromJson(json.noise))
             } catch (e) {
-                console.error(`Could not load noise settings ${ns}: ${e}`)
+                toastr.error(e, `Could not load noise settings ${ns}`)
             }
         }
     }
@@ -75,11 +77,10 @@ export class DatapackManager {
                                     if (typeof ns === "string") {
                                         ns = this.noise_settings.get(prompt("Which noise settings should be used?", ns))
                                         if (ns === undefined) {
-                                            alert(`Noise setting unknown, using minecraft:overworld`)
+                                            toastr.warning(`using minecraft:overworld`, `Noise settings unknown`)
                                             ns = this.noise_settings.get("minecraft:overworld")
                                         }
                                     }
-                                    console.log(ns)
                                     GraphManager.setNoiseSettings(ns)
                                     this.datapack.get("worldgen/density_function", df.toString()).then(json => GraphManager.loadJSON(json, df.toString()))
                                 }
@@ -126,12 +127,15 @@ export class DatapackManager {
         for (var i = folders.length - 1; i >= 1; i--) {
             const ns = this.noise_settings.get(`${namespace}:${folders.slice(0, i).join("/")}`)
             if (ns !== undefined) {
+                toastr.info(`using noise settings ${namespace}:${folders.slice(0, i).join("/")}`)
+
                 return ns
             }
         }
 
         const ns_in_namespace = Array.from(this.noise_settings.keys()).filter(id => id.split(":", 2)[0] === namespace)
         if (ns_in_namespace.length === 1) {
+            toastr.info(`using noise settings ${ns_in_namespace[0]}`)
             return this.noise_settings.get(ns_in_namespace[0])
         } else if (ns_in_namespace.length > 1) {
             return ns_in_namespace[0]
@@ -142,6 +146,7 @@ export class DatapackManager {
             const ns_id = noise_setting_keys.find(ns_id => ns_id.match(`^[^\/:]+:${folders.slice(0, i).join("/")}$`))
             const ns = this.noise_settings.get(ns_id)
             if (ns !== undefined) {
+                toastr.info(`using noise settings ${ns_id}`)
                 return ns
             }
         }
@@ -153,12 +158,12 @@ export class DatapackManager {
         if (!this.datapack.canSave()) {
             return false
         } else {
+           
             if (!(await this.datapack.save("worldgen/density_function", id, JSON.parse(jsonString)))) { // let the datpack do its own json formating
                 return false
             }
 
-            if (!(await this.datapack.has("worldgen/density_function", id)))
-                alert("Saving into new density function " + id)
+            toastr.success(id, "Denisty function saved")
 
             return true
         }

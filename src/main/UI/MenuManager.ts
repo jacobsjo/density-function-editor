@@ -4,6 +4,9 @@ import { DatapackManager } from "../DatapackManager"
 import { IContextMenuOptions, LiteGraph } from "litegraph.js"
 import { DensityFunction, Identifier, WorldgenRegistries } from "deepslate"
 
+import * as toastr from "toastr"
+import { parse } from "comment-json"
+
 export class MenuManager {
     static save_button: HTMLElement
 
@@ -11,7 +14,7 @@ export class MenuManager {
         this.save_button = document.getElementById("menu-button-save")
 
         document.getElementById("menu-button-new").onclick = async () => {
-            if (DatapackManager.datapack !== undefined){
+            if (DatapackManager.datapack !== undefined) {
                 GraphManager.clear()
             } else {
                 GraphManager.clear()
@@ -37,30 +40,35 @@ export class MenuManager {
             }
 
             DatapackManager.openDatapack(datapack)
-
+            toastr.success(`Open density functions from context menu`, 'Datapack opened')
         }
 
         const load = (jsonString: string) => {
-            const json = JSON.parse(jsonString)
+            try {
+                const json = parse(jsonString) as any
 
-            if (json.noise_router !== undefined) {
-                var menu_info: any = []
-                Object.keys(json.noise_router).forEach((element) => menu_info.push({
-                    content: element,
-                    callback: () => {
-                        GraphManager.loadJSON(json.noise_router[element])
-                        DatapackManager.closeDatapacks()
-                    }
-                }))
-                const options = { top: 200, left: 200 }
-                const e = console.error
-                console.error = () => { }
-                var menu = new LiteGraph.ContextMenu(menu_info, options as IContextMenuOptions, GraphManager.canvas.getCanvasWindow());
-                console.error = e
-            } else {
-                GraphManager.loadJSON(json)
-                DatapackManager.closeDatapacks()
+                if (json.noise_router !== undefined) {
+                    var menu_info: any = []
+                    Object.keys(json.noise_router).forEach((element) => menu_info.push({
+                        content: element,
+                        callback: () => {
+                            GraphManager.loadJSON(json.noise_router[element])
+                            DatapackManager.closeDatapacks()
+                        }
+                    }))
+                    const options = { top: 200, left: 200 }
+                    const e = console.error
+                    console.error = () => { }
+                    var menu = new LiteGraph.ContextMenu(menu_info, options as IContextMenuOptions, GraphManager.canvas.getCanvasWindow());
+                    console.error = e
+                } else {
+                    GraphManager.loadJSON(json)
+                    DatapackManager.closeDatapacks()
+                }
+            } catch (e) {
+                toastr.error(e, "Could not load file")
             }
+
         }
 
         document.getElementById("menu-button-open-file").onclick = async () => {
@@ -111,27 +119,27 @@ export class MenuManager {
     }
 
     static async save(id?: string, suggested_id?: string): Promise<string> {
-        if (DatapackManager.datapack.canSave()){
+        if (DatapackManager.datapack.canSave()) {
             DatapackManager.datapack.prepareSave()
         }
-        
+
         const output = GraphManager.getOutput()
-        if (output.error && !confirm("Some nodes have unconnected inputs, the resulting JSON will be invalid. Continue?")) 
+        if (output.error && !confirm("Some nodes have unconnected inputs, the resulting JSON will be invalid. Continue?"))
             return undefined
 
         const jsonString = JSON.stringify(output.json, null, 2)
-        if (DatapackManager.datapack.canSave()){
-            if (id === undefined || id === ""){
+        if (DatapackManager.datapack.canSave()) {
+            if (id === undefined || id === "") {
                 const input_id = prompt("Set id of density function", suggested_id ?? "minecraft:")
-                
-                    if (input_id === null){
-                        return undefined
-                    }
-                    id = input_id
-                try{
+
+                if (input_id === null) {
+                    return undefined
+                }
+                id = input_id
+                try {
                     Identifier.parse(input_id)
-                } catch (e){
-                    alert("Invalid identifier - not saved")
+                } catch (e) {
+                    toastr.error("not saved", "Invalid identifier")
                     return undefined
                 }
             }
@@ -139,7 +147,7 @@ export class MenuManager {
                 GraphManager.setSaved()
                 WorldgenRegistries.DENSITY_FUNCTION.register(Identifier.parse(id), DensityFunction.fromJson(output.json)) //create new DensityFunction without all the caching...
             } else {
-                alert("Saving unsuccessfull")
+                toastr.error("Saving unsuccessfull")
                 return undefined
             }
         } else {
@@ -155,7 +163,7 @@ export class MenuManager {
                                 }
                             }
                         ],
-                        suggestedName: id ? id.substr(id.lastIndexOf("/") + 1) + ".json" : "density_function.json" 
+                        suggestedName: id ? id.substr(id.lastIndexOf("/") + 1) + ".json" : "density_function.json"
                     })
                 const writable = await fileHandle.createWritable()
                 await writable.write(jsonString)
@@ -165,7 +173,7 @@ export class MenuManager {
             } else {
                 const bb = new Blob([jsonString], { type: 'text/plain' })
                 const a = document.createElement('a')
-                a.download = id ? id.substr(id.lastIndexOf("/") + 1) + ".json" : "density_function.json" 
+                a.download = id ? id.substr(id.lastIndexOf("/") + 1) + ".json" : "density_function.json"
                 a.href = window.URL.createObjectURL(bb)
                 a.click()
                 GraphManager.setSaved()
