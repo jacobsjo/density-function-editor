@@ -38,7 +38,7 @@ export class ConstantDensityFunctionNode extends LGraphNodeFixed{
             json: this.properties.value,
             error: false,
             changed: this.has_change,
-            df: GraphManager.visitor.apply(new DensityFunction.Constant(this.properties.value))
+            df: GraphManager.visitor.map(new DensityFunction.Constant(this.properties.value))
         })
         this.has_change = false
     }

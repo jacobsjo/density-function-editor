@@ -99,7 +99,7 @@ export class DensityFunctionNode extends LGraphNodeFixed{
         })
 
         if (this.df === undefined || this.has_change || input_has_changed){
-            this.df = new PersistentCacheDensityFunction(GraphManager.visitor.apply(DensityFunction.fromJson({type: this.name, ...this.properties, ...input_dfs}, (obj) => obj as DensityFunction)))
+            this.df = new PersistentCacheDensityFunction(GraphManager.visitor.map(DensityFunction.fromJson({type: this.name, ...this.properties, ...input_dfs}, (obj) => obj as DensityFunction)))
             this.warning = Warning.create(this.df)
         }
 

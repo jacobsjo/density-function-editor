@@ -198,7 +198,7 @@ export class GraphManager {
 
     static setNoiseSettings(ns: NoiseSettings){
         this.noiseSettings = ns
-        this.visitor = NoiseRouter.createVisitor(XoroshiroRandom.create(BigInt(0)).forkPositional(), ns)
+        this.visitor = new NoiseRouter.Visitor(XoroshiroRandom.create(BigInt(0)).forkPositional(), ns)
     }
 
     static hasChanged() {
