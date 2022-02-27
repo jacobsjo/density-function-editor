@@ -5,7 +5,7 @@ import { IContextMenuOptions, LiteGraph } from "litegraph.js"
 import { DensityFunction, Identifier, WorldgenRegistries } from "deepslate"
 
 import * as toastr from "toastr"
-import { parse } from "comment-json"
+import { parse, stringify } from "comment-json"
 
 export class MenuManager {
     static save_button: HTMLElement
@@ -133,7 +133,6 @@ export class MenuManager {
         if (output.error && !confirm("Some nodes have unconnected inputs, the resulting JSON will be invalid. Continue?"))
             return undefined
 
-        const jsonString = JSON.stringify(output.json, null, 2)
         if (DatapackManager.datapack.canSave()) {
             if (id === undefined || id === "") {
                 const input_id = prompt("Set id of density function", suggested_id ?? "minecraft:")
@@ -149,7 +148,7 @@ export class MenuManager {
                     return undefined
                 }
             }
-            if (await DatapackManager.datapackSave(jsonString, id)) {
+            if (await DatapackManager.datapackSave(output.json, id)) {
                 GraphManager.setSaved()
                 WorldgenRegistries.DENSITY_FUNCTION.register(Identifier.parse(id), DensityFunction.fromJson(output.json)) //create new DensityFunction without all the caching...
             } else {
@@ -157,6 +156,8 @@ export class MenuManager {
                 return undefined
             }
         } else {
+            const jsonString = stringify(output.json, null, 2)
+
             id ??= suggested_id // id and suggested id should behave identically when user interaction is nessecarry anyways
             if ("showSaveFilePicker" in window) {
                 const fileHandle = await window.showSaveFilePicker(

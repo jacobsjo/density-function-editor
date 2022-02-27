@@ -77,7 +77,6 @@ export class DatapackManager {
                                 has_submenu: false,
                                 callback: () => {
                                     var ns = this.tryGetNoiseSettingsFromDensityFunction(df.toString())
-                                    console.log(ns)
                                     if (Array.isArray(ns)) {
                                         ns = prompt("Which noise settings should be used?", ns[0])
                                         if (!this.noise_settings.has(ns)) {
@@ -155,12 +154,12 @@ export class DatapackManager {
         return []
     }
 
-    static async datapackSave(jsonString: string, id: string) {
+    static async datapackSave(json: any, id: string) {
         if (!this.datapack.canSave()) {
             return false
         } else {
            
-            if (!(await this.datapack.save("worldgen/density_function", id, JSON.parse(jsonString)))) { // let the datpack do its own json formating
+            if (!(await this.datapack.save("worldgen/density_function", id, json))) {
                 return false
             }
 

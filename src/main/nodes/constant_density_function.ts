@@ -35,7 +35,19 @@ export class ConstantDensityFunctionNode extends LGraphNodeFixed{
 
     onExecute(){
         this.setOutputData(0, {
-            json: this.properties.value,
+            json: [
+                this.properties.value,
+                [{
+                    type: 'LineComment',
+                    value: "[df-editor]:" + JSON.stringify({
+                        pos: [this.pos[0], this.pos[1]],
+                        collapsed: this.flags.collapsed ?? false
+                    }),
+                    inline: true,
+                    loc: {start: {line: 0, column: 0}, end: {line: 0, column: 1}
+                    }
+                }]
+            ],
             error: false,
             changed: this.has_change,
             df: GraphManager.visitor.map(new DensityFunction.Constant(this.properties.value))

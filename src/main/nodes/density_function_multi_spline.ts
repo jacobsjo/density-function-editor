@@ -103,7 +103,9 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
                 return spline.compute()
             } else if (spline instanceof CubicSpline.MultiPoint) {
                 
-                const coordinate = this.getInputDataByName((spline.coordinate as PassthroghDensityFunction).input_name).json
+                const coordinate = this.getInputDataByName((spline.coordinate as PassthroghDensityFunction).input_name).json ?? {
+                    json: {}, error: true, changed: false, df: DensityFunction.Constant.ZERO
+                }
                 
                 const points = []
                 for (var i = 0 ; i < spline.locations.length ; i++){
@@ -115,8 +117,9 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
                 }
 
                 return {
-                    coordinate: coordinate,
-                    points: points
+                    coordinate: Array.isArray(coordinate) ? coordinate[0] : coordinate,
+                    points: points,
+                    ...((Array.isArray(coordinate)) && {[Symbol.for('after:coordinate')]: coordinate[1]})
                 }
             }
         }
@@ -129,7 +132,17 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
                 "type": "minecraft:spline",
                 "min_value": this.properties.min_value,
                 "max_value": this.properties.max_value,
-                "spline": splineToJson(this.spline)
+                "spline": splineToJson(this.spline),
+                [Symbol.for('before:type')]: [{
+                    type: 'LineComment',
+                    value: "[df-editor]:" + JSON.stringify({
+                        pos: [this.pos[0], this.pos[1]],
+                        collapsed: this.flags.collapsed ?? false
+                    }),
+                    inline: false,
+                    loc: {start: {line: 0, column: 0}, end: {line: 0, column: 1}
+                    }
+                }]                       
             },
             error: error || input_has_error,
             changed: this.has_change || input_has_changed,

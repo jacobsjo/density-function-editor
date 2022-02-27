@@ -67,7 +67,9 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
             })
         }
 
-        const input = this.getInputDataByName("coordinate")
+        const input = this.getInputDataByName("coordinate") ?? {
+            json: {}, error: true, changed: false, df: DensityFunction.Constant.ZERO
+        }
 
         const error = (input === undefined || input.error)
 
@@ -85,9 +87,20 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
                 min_value: this.properties.min_value,
                 max_value: this.properties.max_value,
                 spline: {
-                    coordinate: input.json,
-                    points: points
-                }
+                    coordinate: (Array.isArray(input.json)) ? input.json[0] : input.json,
+                    points: points,
+                    ...((Array.isArray(input.json)) && {[Symbol.for('after:coordinate')]: input.json[1]})
+                },
+                [Symbol.for('before:type')]: [{
+                    type: 'LineComment',
+                    value: "[df-editor]:" + JSON.stringify({
+                        pos: [this.pos[0], this.pos[1]],
+                        collapsed: this.flags.collapsed ?? false
+                    }),
+                    inline: false,
+                    loc: {start: {line: 0, column: 0}, end: {line: 0, column: 1}
+                    }
+                }]                
             },
             error: error,
             changed: input.changed || this.has_change,
