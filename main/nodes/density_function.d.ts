@@ -4,11 +4,13 @@ export declare class DensityFunctionNode extends LGraphNodeFixed {
     private name;
     input_names: string[];
     private wdgs;
+    private noiseWdgs;
     private has_change;
     private df;
     warning: Warning;
     constructor(name: string, args: Map<string, string>);
     updateWidgets(): void;
+    onReload(): void;
     onConnectionsChange(): void;
     onExecute(): void;
 }

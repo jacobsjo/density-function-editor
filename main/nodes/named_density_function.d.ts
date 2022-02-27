@@ -8,6 +8,7 @@ export declare class NamedDensityFunctionNode extends LGraphNodeFixed {
     updateWidgets(): void;
     private updateColor;
     getTitle: () => any;
+    onReload(): void;
     onExecute(): void;
 }
 //# sourceMappingURL=named_density_function.d.ts.map

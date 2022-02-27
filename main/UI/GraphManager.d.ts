@@ -1,4 +1,4 @@
-import { DensityFunction, NoiseSettings } from "deepslate";
+import { DensityFunction, Identifier } from "deepslate";
 import { LGraph, LGraphCanvas, LGraphNode } from "litegraph.js";
 import { NamedDensityFunctionNode } from "../nodes/named_density_function";
 export declare class GraphManager {
@@ -11,14 +11,14 @@ export declare class GraphManager {
     static has_change: boolean;
     static id: string;
     static oldJson: unknown;
-    static noiseSettings: NoiseSettings;
+    static noiseSettings: Identifier;
     static visitor: DensityFunction.Visitor;
     private static currentLink;
     private static preview_canvas;
     private static preview_id;
     private static preview_size;
     static init(): void;
-    static setNoiseSettings(ns: NoiseSettings): void;
+    static setNoiseSettings(ns: Identifier): void;
     static hasChanged(): boolean;
     static clear(id?: string): void;
     static getOutput(): {
@@ -28,6 +28,7 @@ export declare class GraphManager {
     };
     static setSaved(): void;
     static loadJSON(json: any, id?: string): boolean;
+    static reload(): void;
     private static updateTitle;
     private static createNodeFromJson;
 }
