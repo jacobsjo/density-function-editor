@@ -19,6 +19,8 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
     private has_change: boolean = false
     private df: DensityFunction = undefined
 
+    allowMultipleOutputs = false
+
     constructor(){
         super()
 

@@ -21,7 +21,8 @@ export class GraphManager {
     static graph: LGraph
     static canvas: LGraphCanvas
 
-    static named_nodes: { [key: string]: NamedDensityFunctionNode }
+    static named_nodes: { [key: string]: NamedDensityFunctionNode[] }
+    static constant_nodes: { [key: string]: ConstantDensityFunctionNode[] }
 
     static has_change: boolean = false
 
@@ -215,6 +216,7 @@ export class GraphManager {
 
         this.graph.clear()
         this.named_nodes = {}
+        this.constant_nodes = {}
 
         this.output_node = new DensityFunctionOutputNode(); // not registered as only one exists
         this.output_node.pos = [900, 400];
@@ -262,6 +264,7 @@ export class GraphManager {
 
         this.graph.clear()
         this.named_nodes = {}
+        this.constant_nodes = {}
 
         this.output_node = new DensityFunctionOutputNode(); // not registered as only one exists
         this.graph.add(this.output_node);
@@ -312,27 +315,44 @@ export class GraphManager {
         window.document.title = `${this.id ? this.id + " - " : ""}Density Function Editor`
     }
 
-    private static createNodeFromJson(json: any, pos: [number, number], relayout: boolean): [LGraphNode, number] {
+    private static createNodeFromJson(json: any, pos: [number, number], relayout: boolean, fix_pos: boolean = false): [LGraphNode, number] {
         if (typeof json === "string") {
-            if (json in this.named_nodes && this.named_nodes[json].pos[0] <= pos[0] + 400) {
-                return [this.named_nodes[json], pos[1]]
-            } else {
-                const node = LiteGraph.createNode("special/named");
-                node.properties.id = json
-                    ; (node as NamedDensityFunctionNode).updateWidgets()
-                node.pos = pos;
-                this.graph.add(node);
-                node.collapse(false)
-                this.named_nodes[json] = (node as NamedDensityFunctionNode)
-                return [node, pos[1] + 150]
+            if (json in this.named_nodes) {
+                for (const node of this.named_nodes[json]){
+                    if (!fix_pos && node.pos[0] <= pos[0] + 400) 
+                        return [node, pos[1]]
+                    if (fix_pos && node.pos[0] === pos[0] && node.pos[1] === pos[1]) 
+                        return [node, pos[1]]
+                }
             }
+            const node = LiteGraph.createNode("special/named");
+            node.properties.id = json
+                ; (node as NamedDensityFunctionNode).updateWidgets()
+            node.pos = pos;
+            this.graph.add(node);
+            node.collapse(false)
+            if (!(json in this.named_nodes))
+                this.named_nodes[json] = []
+            this.named_nodes[json].push(node as NamedDensityFunctionNode)
+            return [node, pos[1] + 150]
         } else if (typeof json === "number") {
+            
+            if (json in this.constant_nodes && fix_pos) {
+                for (const node of this.constant_nodes[json]){
+                    if (node.pos[0] === pos[0] && node.pos[1] === pos[1]) 
+                        return [node, pos[1]]
+                }
+            }
+
             const node = LiteGraph.createNode("input/constant");
             node.properties.value = json
                 ; (node as ConstantDensityFunctionNode).updateWidgets()
             node.pos = pos;
             this.graph.add(node);
             node.collapse(false)
+            if (!(json in this.constant_nodes))
+                this.constant_nodes[json] = []
+            this.constant_nodes[json].push(node as ConstantDensityFunctionNode)
             return [node, pos[1] + 150]
         } else if (typeof json === "object"){
             var fixed_pos: [number, number] = undefined
@@ -363,10 +383,10 @@ export class GraphManager {
                     node.mode = LiteGraph.ALWAYS; // needed as node is not created from registy
                     var y = pos[1]
 
-                    for (const [input, j] of (node as MultiSplineDensityFunctionNode).input_jsons) {
-                        if (j !== undefined) {
+                    for (const [input, j] of (node as MultiSplineDensityFunctionNode).input_map) {
+                        if (j.json !== undefined) {
                             var n: LGraphNode
-                            [n, y] = this.createNodeFromJson(j, [pos[0] - 250, y], relayout) //TODO position comment!
+                            [n, y] = this.createNodeFromJson(j.json, [pos[0] - 250, y], relayout) //TODO position comment!
                             n.connect(0, node, input)
                         } else {
                             toastr.error(input, `Density function not recognices`)
@@ -398,15 +418,17 @@ export class GraphManager {
 
                     var n: LGraphNode
                     var child_pos: [number, number] = [pos[0] - 250, y]
+                    var fix_client_pos = false
 
                     if (!relayout && typeof json.spline.coordinate !== "object"){
                         const comment_pos = this.handleComments(json.spline[Symbol.for('after:coordinate')])
                         if (comment_pos !== undefined) {
                             child_pos = comment_pos.pos
+                            fix_client_pos = true
                         }
                     }
         
-                    [n, y] = this.createNodeFromJson(json.spline.coordinate, child_pos, relayout)
+                    [n, y] = this.createNodeFromJson(json.spline.coordinate, child_pos, relayout, fix_client_pos)
                     n.connect(0, node, "coordinate")
                 }
             } else if (json.type) {
@@ -428,15 +450,17 @@ export class GraphManager {
                         if (json[input] !== undefined) {
                             var n: LGraphNode
                             var child_pos: [number, number] = [pos[0] - 250, y]
+                            var fix_client_pos = false
 
                             if (!relayout && typeof json[input] !== "object"){
                                 const comment_pos = this.handleComments(json[Symbol.for(`after:${input}`)])
                                 if (comment_pos !== undefined) {
                                     child_pos = comment_pos.pos
+                                    fix_client_pos = true
                                 }
                             }
                 
-                            [n, y] = this.createNodeFromJson(json[input], child_pos, relayout)
+                            [n, y] = this.createNodeFromJson(json[input], child_pos, relayout, fix_client_pos)
                             n.connect(0, node, input)
                         } else {
                             toastr.warning(input, `Density function ${type} is missing properties`)

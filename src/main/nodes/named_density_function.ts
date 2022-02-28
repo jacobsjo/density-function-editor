@@ -13,6 +13,8 @@ export class NamedDensityFunctionNode extends LGraphNodeFixed {
     private has_change: boolean
     private df: DensityFunction = undefined
 
+    allowMultipleOutputs = true
+
     constructor() {
         super()
         this.addOutput("output", "densityFunction", { locked: true, nameLocked: true });

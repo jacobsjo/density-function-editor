@@ -23,6 +23,8 @@ export class DensityFunctionNode extends LGraphNodeFixed {
     private df: DensityFunction = undefined
     public warning: Warning = undefined
 
+    allowMultipleOutputs = false
+
     constructor(private name: string, args: Map<string, string>) {
         super()
 
@@ -101,7 +103,7 @@ export class DensityFunctionNode extends LGraphNodeFixed {
                 error = true
                 input_dfs[input] = DensityFunction.Constant.ZERO
             } else {
-                if (Array.isArray(i.json)) {
+                if (i.json && Array.isArray(i.json)) {
                     input_jsons[input] = i.json[0]
                     input_jsons[Symbol.for(`after:${input}`)] = i.json[1]
                 } else {

@@ -10,6 +10,8 @@ export class ConstantDensityFunctionNode extends LGraphNodeFixed{
     private wdgt: IWidget
     private has_change: boolean = false
 
+    allowMultipleOutputs = true
+
     constructor(){
         super()
         const output = this.addOutput("output","densityFunction", {locked: true, nameLocked: true});
