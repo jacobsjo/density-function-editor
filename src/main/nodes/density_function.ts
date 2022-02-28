@@ -77,9 +77,7 @@ export class DensityFunctionNode extends LGraphNodeFixed {
 
     onReload() {
         this.noiseWdgs.forEach(wdg => {
-            console.log(wdg.options)
             wdg.options.values = WorldgenRegistries.NOISE.keys().sort().map(k => k.toString())
-            console.log(wdg.options)
         })
         this.has_change = true
     }

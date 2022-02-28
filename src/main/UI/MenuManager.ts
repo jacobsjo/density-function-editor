@@ -122,6 +122,13 @@ export class MenuManager {
             GraphManager.reload()
             toastr.success("Reload successfull")
         }
+
+        document.getElementById("menu-button-autolayout").onclick = () => {
+            if (confirm("This will delete all unconnected nodes. Continue?")){
+                GraphManager.autoLayout()
+            }
+        }
+
     }
 
     static async save(id?: string, suggested_id?: string): Promise<string> {

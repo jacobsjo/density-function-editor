@@ -249,8 +249,11 @@ export class GraphManager {
         this.oldJson = this.getOutput().json
     }
 
+    static autoLayout(){
+        this.loadJSON(this.getOutput().json, this.id, true)
+    }
+
     static loadJSON(json: any, id?: string, relayout: boolean = false): boolean {
-        console.log(json)
         if (this.hasChanged() && !confirm("You have unsaved changes. Continue?")) {
             return
         }
@@ -462,7 +465,6 @@ export class GraphManager {
 
     private static handleComments(comments : CommentToken[]){
         if (comments !== undefined){
-            console.log(comments)
             for (const comment of comments){
                 if (comment.type === "LineComment" && comment.value.startsWith("[df-editor]:")){
                     try{
