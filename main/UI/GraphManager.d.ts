@@ -27,9 +27,11 @@ export declare class GraphManager {
         df: DensityFunction;
     };
     static setSaved(): void;
-    static loadJSON(json: any, id?: string): boolean;
+    static autoLayout(): void;
+    static loadJSON(json: any, id?: string, relayout?: boolean): boolean;
     static reload(): void;
     private static updateTitle;
     private static createNodeFromJson;
+    private static handleComments;
 }
 //# sourceMappingURL=GraphManager.d.ts.map
