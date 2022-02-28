@@ -4,6 +4,7 @@ export declare class NamedDensityFunctionNode extends LGraphNodeFixed {
     private wdgt;
     private has_change;
     private df;
+    allowMultipleOutputs: boolean;
     constructor();
     updateWidgets(): void;
     private updateColor;

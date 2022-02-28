@@ -1,12 +1,16 @@
 import { DensityFunction, Identifier } from "deepslate";
 import { LGraph, LGraphCanvas, LGraphNode } from "litegraph.js";
+import { ConstantDensityFunctionNode } from "../nodes/constant_density_function";
 import { NamedDensityFunctionNode } from "../nodes/named_density_function";
 export declare class GraphManager {
     static output_node: LGraphNode;
     static graph: LGraph;
     static canvas: LGraphCanvas;
     static named_nodes: {
-        [key: string]: NamedDensityFunctionNode;
+        [key: string]: NamedDensityFunctionNode[];
+    };
+    static constant_nodes: {
+        [key: string]: ConstantDensityFunctionNode[];
     };
     static has_change: boolean;
     static id: string;
