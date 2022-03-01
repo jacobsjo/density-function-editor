@@ -1,6 +1,7 @@
 import { CubicSpline, DensityFunction, Identifier, NoiseRouter, Noises, NoiseSettings, XoroshiroRandom } from "deepslate";
 import { LiteGraph, LGraph, LGraphCanvas, LGraphNode, IContextMenuOptions, LLink } from "litegraph.js";
 import { DatapackManager } from "../DatapackManager";
+import { UIInterface } from "../UIInterface";
 import { ConstantDensityFunctionNode } from "../nodes/constant_density_function";
 import { DensityFunctionNode } from "../nodes/density_function";
 import { MultiSplineDensityFunctionNode } from "../nodes/density_function_multi_spline";
@@ -11,7 +12,6 @@ import { registerNodes } from "../nodes/register";
 import { IdentityNumberFunction } from "../util";
 import { schemas } from "../vanilla/schemas";
 import { PreviewMode } from "./PreviewMode";
-import * as toastr from "toastr"
 import { CommentArray, CommentToken } from "comment-json";
 import { LGraphNodeFixed } from "../nodes/LGraphNodeFixed";
 
@@ -38,7 +38,10 @@ export class GraphManager {
     private static preview_id: number = 2
     private static preview_size = 200
 
-    static init() {
+    static uiInterface: UIInterface
+
+    static init(uiInterface: UIInterface) {
+        this.uiInterface = uiInterface
         LiteGraph.clearRegisteredTypes() // don't use default node types
         registerNodes()
 
@@ -186,7 +189,6 @@ export class GraphManager {
         }
     }
 
-    //TODO call this and readd Ctrl+S
     static onKeyDown(ev: KeyboardEvent){
         if (this.currentLink !== undefined && ev.key === "Tab") {
             this.preview_id = (this.preview_id + 1) % PreviewMode.PREVIEW_MODES.length
@@ -207,7 +209,7 @@ export class GraphManager {
     }
 
     static clear(id?: string) {
-        if (this.hasChanged() && !confirm("You have unsaved changes. Continue?")) {
+        if (this.hasChanged() && !this.uiInterface.confirm("You have unsaved changes. Continue?")) {
             return
         }
 
@@ -253,7 +255,7 @@ export class GraphManager {
     }
 
     static loadJSON(json: any, id?: string, relayout: boolean = false): boolean {
-        if (this.hasChanged() && !confirm("You have unsaved changes. Continue?")) {
+        if (this.hasChanged() && !this.uiInterface.confirm("You have unsaved changes. Continue?")) {
             return
         }
 
@@ -283,7 +285,7 @@ export class GraphManager {
                 this.output_node.pos = [900, y / 2];
             }
         } catch (e) {
-            toastr.warning(e, "Could not load Denisty Function")
+            this.uiInterface.logger.warn(e, "Could not load Denisty Function")
             console.warn(e)
             this.output_node.pos = [900, 400];
         }
@@ -299,7 +301,7 @@ export class GraphManager {
 
     public static reload() {
         if (!DatapackManager.noise_settings.has(this.noiseSettings.toString())) {
-            toastr.warning(`falling back to minecraft:overworld; reopen file to change`, `The used noise settings ${this.noiseSettings.toString()} were removed`)
+            this.uiInterface.logger.warn(`falling back to minecraft:overworld; reopen file to change`, `The used noise settings ${this.noiseSettings.toString()} were removed`)
             this.noiseSettings = Identifier.parse("minecraft:overworld")
         }
 
@@ -386,7 +388,7 @@ export class GraphManager {
                             [n, y] = this.createNodeFromJson(j.json, [pos[0] - 250, y], relayout) //TODO position comment!
                             n.connect(0, node, input)
                         } else {
-                            toastr.error(input, `Density function not recognices`)
+                            this.uiInterface.logger.error(input, `Density function not recognices`)
                         }
                     }
                     node.pos = fixed_pos ?? [pos[0], (pos[1] + y - 150) / 2];
@@ -437,7 +439,7 @@ export class GraphManager {
                         if (json[property] !== undefined) {
                             node.properties[property] = json[property]
                         } else {
-                            toastr.warning(property, `Density function ${type} is missing properties`)
+                            this.uiInterface.logger.warn(property, `Density function ${type} is missing properties`)
                         }
                     }
                     node.updateWidgets()
@@ -460,7 +462,7 @@ export class GraphManager {
                             [n, y] = this.createNodeFromJson(json[input], child_pos, relayout, fix_client_pos)
                             n.connect(0, node, input)
                         } else {
-                            toastr.warning(input, `Density function ${type} is missing properties`)
+                            this.uiInterface.logger.warn(input, `Density function ${type} is missing properties`)
                         }
                     }
                 }
@@ -492,7 +494,7 @@ export class GraphManager {
                         const pos_data = JSON.parse(comment.value.substr(12))
                         return pos_data
                     } catch (e) {
-                        toastr.warning(e, `Could not load node positioning`)
+                        this.uiInterface.logger.warn(e, `Could not load node positioning`)
                     }
                     break
                 }

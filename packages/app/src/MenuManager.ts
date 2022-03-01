@@ -129,6 +129,14 @@ export class MenuManager {
             }
         }
 
+        document.body.onkeydown = (ev: KeyboardEvent) => {
+            if (ev.key === "s" && (ev.ctrlKey || ev.metaKey)){
+                this.save()
+            } else {
+                GraphManager.onKeyDown(ev)
+            }
+        }
+
     }
 
     static async save(id?: string, suggested_id?: string): Promise<string> {

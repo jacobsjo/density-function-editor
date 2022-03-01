@@ -5,8 +5,6 @@ import { GraphManager } from "./UI/GraphManager";
 
 import { noise_router_fields } from "./vanilla/schemas";
 
-import * as toastr from "toastr";
-
 export class DatapackManager {
     static datapack: CompositeDatapack
     static vanilla_datapack: Datapack
@@ -30,7 +28,7 @@ export class DatapackManager {
                 const json = await this.datapack.get("worldgen/density_function", df)
                 WorldgenRegistries.DENSITY_FUNCTION.register(Identifier.parse(df), DensityFunction.fromJson(json))
             } catch (e) {
-                toastr.error(e, `Could not load density function ${df}`)
+                GraphManager.uiInterface.logger.error(e, `Could not load density function ${df}`)
             }
         }
 
@@ -40,7 +38,7 @@ export class DatapackManager {
                 const json = await this.datapack.get("worldgen/noise", n)
                 WorldgenRegistries.NOISE.register(Identifier.parse(n), NoiseParameters.fromJson(json))
             } catch (e) {
-                toastr.error(e, `Could not load noise ${n}`)
+                GraphManager.uiInterface.logger.error(e, `Could not load noise ${n}`)
             }
         }
 
@@ -50,7 +48,7 @@ export class DatapackManager {
                 const json: any = await this.datapack.get("worldgen/noise_settings", ns)
                 this.noise_settings.set(ns, NoiseSettings.fromJson(json.noise))
             } catch (e) {
-                toastr.error(e, `Could not load noise settings ${ns}`)
+                GraphManager.uiInterface.logger.error(e, `Could not load noise settings ${ns}`)
             }
         }
     }
@@ -78,13 +76,13 @@ export class DatapackManager {
                                 callback: () => {
                                     var ns = this.tryGetNoiseSettingsFromDensityFunction(df.toString())
                                     if (Array.isArray(ns)) {
-                                        ns = prompt("Which noise settings should be used?", ns[0])
+                                        ns = GraphManager.uiInterface.prompt("Which noise settings should be used?", ns[0])
                                         if (!this.noise_settings.has(ns)) {
-                                            toastr.warning(`using minecraft:overworld`, `Noise settings unknown`)
+                                            GraphManager.uiInterface.logger.warn(`using minecraft:overworld`, `Noise settings unknown`)
                                             ns = "minecraft:overworld"
                                         }
                                     } else {
-                                        toastr.info(`using noise settings ${ns}`)
+                                        GraphManager.uiInterface.logger.info(`using noise settings ${ns}`)
                                     }
                                     GraphManager.setNoiseSettings(Identifier.parse(ns))
                                     this.datapack.get("worldgen/density_function", df.toString()).then(json => GraphManager.loadJSON(json, df.toString()))
@@ -163,7 +161,7 @@ export class DatapackManager {
                 return false
             }
 
-            toastr.success(id, "Denisty function saved")
+            GraphManager.uiInterface.logger.success(id, "Denisty function saved")
 
             return true
         }

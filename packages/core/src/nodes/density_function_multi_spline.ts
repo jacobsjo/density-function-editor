@@ -1,8 +1,7 @@
 import { CubicSpline, DensityFunction } from "deepslate";
 import { INodeOutputSlot, IWidget, LGraphNode, LiteGraph} from "litegraph.js";
+import { GraphManager } from "../UI/GraphManager";
 import { LGraphNodeFixed } from "./LGraphNodeFixed";
-
-import * as toastr from "toastr";
 
 const spline_values = ["offset", "factor", "jaggedness"]
 const sampler_types = ["type_1", "type_2"]
@@ -90,7 +89,7 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
         outputIndex: number
     ): boolean {
         if (this.input_map.get(this.getInputInfo(inputIndex).name).is_multiple && (outputNode instanceof LGraphNodeFixed) && !(outputNode.allowMultipleOutputs)){
-            toastr.error("You can only connect named density functions or constants here", "This input is used multiple times by the spline")
+            GraphManager.uiInterface.logger.error("You can only connect named density functions or constants here", "This input is used multiple times by the spline")
             return false
         }
 
