@@ -1,0 +1,29 @@
+{
+    "name": "df-editor-core",
+    "version": "0.1.0",
+    "private": true,
+    "config": {
+        "access": "private"
+    },
+    "main": "dist/main.js",
+    "typings": "dist/main.d.ts",
+    "scripts": {
+        "compile": "tsc --project tsconfig.json",
+        "watch": "tsc --watch --project tsconfig.json"
+    },
+    "devDependencies": {
+        "@types/toastr": "^2.1.39",
+        "@types/wicg-file-system-access": "^2020.9.4",
+        "ts-node": "^7.0.1",
+        "tslib": "^1.9.3",
+        "typescript": "^4.5.5"
+        },
+    "dependencies": {
+        "comment-json": "4.2.2",
+        "deepslate": "0.9.0-beta.14",
+        "jszip": "^3.7.1",
+        "litegraph.js": "^0.7.10",
+        "mc-datapack-loader": "0.1.0",
+        "toastr": "^2.1.4"
+    }
+}

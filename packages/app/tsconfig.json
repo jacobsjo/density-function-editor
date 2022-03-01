@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "esnext",
+        "declaration": true,
+        "declarationDir": "dist",
+        "declarationMap": true,
+        "outDir": "dist",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "sourceMap": true,
+        "lib": [
+            "esnext",
+            "dom"
+        ]
+    },
+    "references": []
+}

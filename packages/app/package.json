@@ -1,0 +1,38 @@
+{
+  "name": "df-editor-app",
+  "version": "0.1.0",
+  "description": "",
+  "private": true,
+  "config": {
+    "access": "private"
+  },
+  "scripts": {
+    "compile": "webpack",
+    "watch": "webpack watch",
+    "start": "webpack serve",
+    "deploy": "gh-pages -d dist"
+  },
+  "keywords": [],
+  "author": "Jochen Jacobs",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/toastr": "^2.1.39",
+    "@types/wicg-file-system-access": "^2020.9.4",
+    "copy-webpack-plugin": "^9.0.1",
+    "gh-pages": "^3.2.3",
+    "ts-loader": "^9.2.5",
+    "typescript": "^4.4.3",
+    "webpack": "^5.52.1",
+    "webpack-cli": "^4.8.0",
+    "webpack-dev-server": "^4.2.1"
+  },
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "toastr": "^2.1.4",
+    "df-editor-core": "0.1.0",
+    "mc-datapack-loader": "0.1.0",
+    "comment-json": "4.2.2",
+    "deepslate": "0.9.0-beta.14",
+    "litegraph.js": "^0.7.10"
+  }
+}
