@@ -27,7 +27,7 @@ export class ProxyDatapack implements Datapack {
                 if (message.data.result && message.data.result === command && message.data.requestId === requestId ){
                     resolve(message.data.text)
                 }
-            })
+            }, {once: true})
         })
 
     }

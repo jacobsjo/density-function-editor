@@ -12,7 +12,7 @@ import { registerNodes } from "../nodes/register";
 import { IdentityNumberFunction } from "../util";
 import { schemas } from "../vanilla/schemas";
 import { PreviewMode } from "./PreviewMode";
-import { CommentArray, CommentToken } from "comment-json";
+import { CommentArray, CommentToken, parse, stringify } from "comment-json";
 import { LGraphNodeFixed } from "../nodes/LGraphNodeFixed";
 
 export class GraphManager {
@@ -38,10 +38,12 @@ export class GraphManager {
     private preview_id: number = 2
     private preview_size = 200
 
+    private isLoading: boolean = false
+
     uiInterface: UIInterface
     datapackManager: DatapackManager;
 
-    constructor(uiInterface: UIInterface, datapackManager: DatapackManager) {
+    constructor(uiInterface: UIInterface, datapackManager: DatapackManager, onChange?: (output: string) => void) {
         this.uiInterface = uiInterface
         this.datapackManager = datapackManager
 
@@ -192,6 +194,12 @@ export class GraphManager {
         this.graph.beforeChange = (_info?: LGraphNode) => {
             this.has_change = true
         }
+
+        this.graph.afterChange = () => {
+            if (onChange && !this.isLoading){
+                onChange(stringify(this.getOutput().json, null, 2))
+            }
+        }
     }
 
     onKeyDown(ev: KeyboardEvent){
@@ -218,6 +226,8 @@ export class GraphManager {
             return
         }
 
+        this.isLoading = true
+
         this.graph.clear()
         this.named_nodes = {}
         this.constant_nodes = {}
@@ -232,6 +242,8 @@ export class GraphManager {
         this.graph.start(50)
         this.oldJson = {}
         this.updateTitle()
+        this.isLoading = false
+
     }
 
     getOutput(): { json: unknown, error: boolean, df: DensityFunction } {
@@ -266,7 +278,12 @@ export class GraphManager {
         this.loadJSON(this.getOutput().json, this.id, true)
     }
 
-    loadJSON(json: any, id?: string, relayout: boolean = false): boolean {
+    loadJSON(json: string | any, id?: string, relayout: boolean = false): boolean {
+        this.isLoading = true
+
+        if (typeof json === "string"){
+            json = parse(json)
+        }
         //if (this.hasChanged() && !this.uiInterface.confirm("You have unsaved changes. Continue?")) {
         //    return
         //}
@@ -307,6 +324,9 @@ export class GraphManager {
         this.oldJson = this.getOutput().json
 
         this.updateTitle()
+
+
+        this.isLoading = false
 
         return true
     }

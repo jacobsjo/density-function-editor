@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import path from 'path';
 import jszip from "jszip";
 import * as vscode from 'vscode';
+import { stringify } from 'comment-json';
 
 export class DfEditorProvider implements vscode.CustomTextEditorProvider {
     public static register(context: vscode.ExtensionContext): vscode.Disposable {
@@ -39,6 +40,17 @@ export class DfEditorProvider implements vscode.CustomTextEditorProvider {
         webviewPanel.webview.onDidReceiveMessage(async (message: any) => {
             var result: any
             switch (message.command) {
+                case "output-change":
+                    const edit = new vscode.WorkspaceEdit();
+
+                    edit.replace(
+                        document.uri,
+                        new vscode.Range(0, 0, document.lineCount, 0),
+                        message.text
+                    );
+            
+                    vscode.workspace.applyEdit(edit);
+                    return;
                 case "datapack-has":
                     result = await (await this.datapack).has(message.text.type, message.text.id)
                     break;
@@ -57,6 +69,10 @@ export class DfEditorProvider implements vscode.CustomTextEditorProvider {
             }
 
             webviewPanel.webview.postMessage({ result: message.command, requestId: message.requestId, text: result })
+        })
+
+        vscode.workspace.onDidChangeTextDocument((e) => {
+            webviewPanel.webview.postMessage({ command: "file-change", text: document.getText()})
         })
 
         const webviewScriptUri = webviewPanel.webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "dist", "webview.js")))
