@@ -10,14 +10,20 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:df-editor.helloWorld"
+		"onCustomEditor:dfeditor.dfeditor"
 	],
 	"main": "./dist/extension",
 	"contributes": {
-		"commands": [
+		"customEditors": [
 			{
-				"command": "df-editor.helloWorld",
-				"title": "Hello World"
+				"viewType": "dfeditor.dfeditor",
+				"displayName": "Density Function Editor",
+				"selector": [
+					{
+						"filenamePattern": "**/worldgen/density_function/**/*.json"
+					}
+				],
+				"priority": "default"
 			}
 		]
 	},
