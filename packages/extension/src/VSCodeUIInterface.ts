@@ -1,39 +1,43 @@
 import { UIInterface } from "df-editor-core/src/UIInterface";
-import * as toastr from "toastr"
+//import * as vscode from 'vscode';
 
-export class WebUIInterface implements UIInterface{
+declare const acquireVsCodeApi;
+
+const vscode = acquireVsCodeApi();
+
+export class VSCodeUIInterface implements UIInterface{
 
     logger = {
         debug(message: string | Error, title?: string): void {
-            toastr.info(message as string, title)
+            //vscode.window.showInformationMessage(title + "\n" + (message as string))
             if (message instanceof Error){
                 console.debug(message)
             }
         },
 
         info(message: string | Error, title?: string): void{
-            toastr.info(message as string, title)
+            //vscode.window.showInformationMessage(title + "\n" + (message as string))
             if (message instanceof Error){
                 console.log(message)
             }
         },     
 
         success(message: string | Error, title?: string): void{
-            toastr.success(message as string, title)
+            //vscode.window.showInformationMessage(title + "\n" + (message as string))
             if (message instanceof Error){
                 console.log(message)
             }
         },
 
         warn(message: string | Error, title?: string): void{
-            toastr.warning(message as string, title)
+            //vscode.window.showWarningMessage(title + "\n" + (message as string))
             if (message instanceof Error){
                 console.warn(message)
             }
         },
 
         error(message: string | Error, title?: string): void{
-            toastr.error(message as string, title)
+            //vscode.window.showErrorMessage(title + "\n" + (message as string))
             if (message instanceof Error){
                 console.error(message)
             }
@@ -41,10 +45,14 @@ export class WebUIInterface implements UIInterface{
     };
 
     async confirm(message: string): Promise<boolean>{
-       return confirm(message)
+       return true;// (await vscode.window.showInformationMessage(message, "Yes", "No")) === "Yes"
     };
 
     async prompt(message: string, _default?: string): Promise<string>{
-        return prompt(message, _default)
+        return ""/* await vscode.window.showInputBox({
+            placeHolder: "",
+            prompt: message,
+            value: _default
+          });*/
     }
 }

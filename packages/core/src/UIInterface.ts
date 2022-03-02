@@ -8,6 +8,6 @@ export interface UIInterface {
         error: (message: string | Error, title?: string) => void
     }
 
-    confirm: (message: string) => boolean
-    prompt: (message: string, preset?: string) => string
+    confirm: (message: string) => Promise<boolean>
+    prompt: (message: string, preset?: string) => Promise<string>
 }

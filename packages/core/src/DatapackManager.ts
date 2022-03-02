@@ -10,8 +10,8 @@ export class DatapackManager {
     static vanilla_datapack: Datapack
     static noise_settings: Map<string, NoiseSettings> = new Map()
 
-    static async init() {
-        this.vanilla_datapack = await ZipDatapack.fromUrl("./data/vanilla_datapack_1_18_2.zip")
+    static async init(vanilla_datapack_url: string) {
+        this.vanilla_datapack = await ZipDatapack.fromUrl(vanilla_datapack_url)
         this.datapack = new CompositeDatapack([this.vanilla_datapack])
         await this.reload()
     }
@@ -24,7 +24,7 @@ export class DatapackManager {
     static async reload() {
         WorldgenRegistries.DENSITY_FUNCTION.clear()
         for (const df of await this.datapack.getIds("worldgen/density_function")) {
-            try{
+            try {
                 const json = await this.datapack.get("worldgen/density_function", df)
                 WorldgenRegistries.DENSITY_FUNCTION.register(Identifier.parse(df), DensityFunction.fromJson(json))
             } catch (e) {
@@ -34,7 +34,7 @@ export class DatapackManager {
 
         WorldgenRegistries.NOISE.clear()
         for (const n of await this.datapack.getIds("worldgen/noise")) {
-            try{
+            try {
                 const json = await this.datapack.get("worldgen/noise", n)
                 WorldgenRegistries.NOISE.register(Identifier.parse(n), NoiseParameters.fromJson(json))
             } catch (e) {
@@ -44,7 +44,7 @@ export class DatapackManager {
 
         this.noise_settings.clear()
         for (const ns of await this.datapack.getIds("worldgen/noise_settings")) {
-            try{
+            try {
                 const json: any = await this.datapack.get("worldgen/noise_settings", ns)
                 this.noise_settings.set(ns, NoiseSettings.fromJson(json.noise))
             } catch (e) {
@@ -76,16 +76,19 @@ export class DatapackManager {
                                 callback: () => {
                                     var ns = this.tryGetNoiseSettingsFromDensityFunction(df.toString())
                                     if (Array.isArray(ns)) {
-                                        ns = GraphManager.uiInterface.prompt("Which noise settings should be used?", ns[0])
-                                        if (!this.noise_settings.has(ns)) {
-                                            GraphManager.uiInterface.logger.warn(`using minecraft:overworld`, `Noise settings unknown`)
-                                            ns = "minecraft:overworld"
-                                        }
+                                        GraphManager.uiInterface.prompt("Which noise settings should be used?", ns[0]).then(ns => {
+                                            if (!this.noise_settings.has(ns)) {
+                                                GraphManager.uiInterface.logger.warn(`using minecraft:overworld`, `Noise settings unknown`)
+                                                ns = "minecraft:overworld"
+                                            }
+                                            GraphManager.setNoiseSettings(Identifier.parse(ns))
+                                            this.datapack.get("worldgen/density_function", df.toString()).then(json => GraphManager.loadJSON(json, df.toString()))
+                                        })
                                     } else {
                                         GraphManager.uiInterface.logger.info(`using noise settings ${ns}`)
+                                        GraphManager.setNoiseSettings(Identifier.parse(ns))
+                                        this.datapack.get("worldgen/density_function", df.toString()).then(json => GraphManager.loadJSON(json, df.toString()))
                                     }
-                                    GraphManager.setNoiseSettings(Identifier.parse(ns))
-                                    this.datapack.get("worldgen/density_function", df.toString()).then(json => GraphManager.loadJSON(json, df.toString()))
                                 }
                             }
                         })
@@ -129,7 +132,7 @@ export class DatapackManager {
 
         for (var i = folders.length - 1; i >= 1; i--) {
             const ns_name = `${namespace}:${folders.slice(0, i).join("/")}`
-            if (this.noise_settings.has(ns_name)){
+            if (this.noise_settings.has(ns_name)) {
                 return ns_name
             }
         }
@@ -144,7 +147,7 @@ export class DatapackManager {
         const noise_setting_keys = Array.from(this.noise_settings.keys())
         for (var i = folders.length - 1; i >= 1; i--) {
             const ns_name = noise_setting_keys.find(ns_id => ns_id.match(`^[^\/:]+:${folders.slice(0, i).join("/")}$`))
-            if (ns_name !== undefined){
+            if (ns_name !== undefined) {
                 return ns_name
             }
         }
@@ -156,7 +159,7 @@ export class DatapackManager {
         if (!this.datapack.canSave()) {
             return false
         } else {
-           
+
             if (!(await this.datapack.save("worldgen/density_function", id, json))) {
                 return false
             }

@@ -52,6 +52,7 @@ export class GraphManager {
         this.graph = new LGraph();
 
         this.canvas = new LGraphCanvas("#mycanvas", this.graph);
+        this.canvas.resize()
         this.canvas.autoresize = true
         this.canvas.canvas.onresize = () => {
             this.canvas.dirty_canvas = true

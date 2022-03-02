@@ -12,7 +12,6 @@
         "watch": "tsc --watch --project tsconfig.json"
     },
     "devDependencies": {
-        "@types/toastr": "^2.1.39",
         "@types/wicg-file-system-access": "^2020.9.4",
         "ts-node": "^7.0.1",
         "tslib": "^1.9.3",

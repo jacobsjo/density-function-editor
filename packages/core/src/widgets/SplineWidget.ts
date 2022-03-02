@@ -240,10 +240,10 @@ export class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>>{
         return [width, width-20+15];
     }
 
-    private expand_timer: NodeJS.Timer = undefined
+    private expand_timer: number = undefined
     private startExpand(direction: "left"|"right"){
         if (!this.expand_timer){
-                this.expand_timer = setInterval(() => {
+                this.expand_timer = window.setInterval(() => {
                     if (direction === "left"){
                         this.min_input -= 0.02
                         this.value.locations[this.dragging_id] = this.min_input
@@ -258,15 +258,15 @@ export class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>>{
 
     private stopExpand(){
         if (this.expand_timer){
-            clearInterval(this.expand_timer)
+            window.clearInterval(this.expand_timer)
             this.expand_timer = undefined
         }
     }
 
-    private shrink_timer: NodeJS.Timer = undefined
+    private shrink_timer: number = undefined
     private startShrink(){
         if (!this.shrink_timer){
-            this.shrink_timer = setInterval(() => {
+            this.shrink_timer = window.setInterval(() => {
                 var changed = false
                 if (this.min_input < this.value.locations[0]-0.3){
                     this.min_input += 0.02
@@ -287,7 +287,7 @@ export class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>>{
 
     private stopShrink(){
         if (this.shrink_timer){
-            clearInterval(this.shrink_timer)
+            window.clearInterval(this.shrink_timer)
             this.shrink_timer = undefined
         }
     }
