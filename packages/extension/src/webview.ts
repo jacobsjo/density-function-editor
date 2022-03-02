@@ -1,14 +1,17 @@
 //import { DatapackManager } from "df-editor-core/src/DatapackManager";
-import { DatapackManager } from 'df-editor-core';
-import { GraphManager } from 'df-editor-core';
+import { GraphManager, DatapackManager } from 'df-editor-core';
+import { ProxyDatapack } from './ProxyDatapack';
 import { VSCodeUIInterface } from './VSCodeUIInterface';
 
-declare const vanillaDatapackUrl: string
+declare const acquireVsCodeApi;
 
 async function init(){
-    console.log(vanillaDatapackUrl)
-    await DatapackManager.init(vanillaDatapackUrl)
-    GraphManager.init(new VSCodeUIInterface())
+    const vscode = acquireVsCodeApi();
+
+    const uiInterface = new VSCodeUIInterface(vscode)
+    const proxyDatapack = new ProxyDatapack(vscode)
+    const datapackManager = new DatapackManager(uiInterface, false, proxyDatapack)
+    const graphManager = new GraphManager(uiInterface, datapackManager)
 }
 
 init()

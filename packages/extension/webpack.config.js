@@ -1,8 +1,37 @@
 const path = require('path');
 
-module.exports = {
+module.exports = [{
+    target: "node",
     entry: {
         extension: './src/extension.ts',
+    },
+    devtool: 'source-map',
+    mode: 'development',
+    module: {
+        rules: [{
+            test: /\.tsx?$/,
+            use: 'ts-loader',
+            exclude: /node_modules/,
+        },],
+    },
+    resolve: {
+        extensions: ['.ts', '.js'],
+        fallback: {
+            "buffer": require.resolve("buffer/"),
+            "path": require.resolve("path-browserify")            
+        }        
+    },
+    externals: {
+        vscode: "vscode"
+    },    
+    output: {
+        filename: '[name].js',
+        path: path.resolve(__dirname, 'dist'),
+        libraryTarget: "commonjs2",
+        devtoolModuleFilenameTemplate: "../[resource-path]",        
+    }
+}, {
+    entry: {
         webview: './src/webview.ts',
     },
     devtool: 'source-map',
@@ -22,13 +51,14 @@ module.exports = {
         }        
     },
     externals: {
-        vscode: "vscode" // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
+        vscode: "vscode"
     },    
     output: {
         filename: '[name].js',
         path: path.resolve(__dirname, 'dist'),
-        clean: true,
         libraryTarget: "commonjs2",
         devtoolModuleFilenameTemplate: "../[resource-path]",        
     }
-};
+}];
+
+

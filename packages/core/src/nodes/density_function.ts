@@ -23,7 +23,11 @@ export class DensityFunctionNode extends LGraphNodeFixed {
 
     allowMultipleOutputs = false
 
-    constructor(private name: string, args: Map<string, string>) {
+    constructor(
+        private name: string,
+        args: Map<string, string>,
+        private readonly graphManager: GraphManager
+    ) {
         super()
 
         this.input_names = []
@@ -115,10 +119,10 @@ export class DensityFunctionNode extends LGraphNodeFixed {
 
         if (this.df === undefined || this.has_change || input_has_changed) {
             try {
-                this.df = new PersistentCacheDensityFunction(GraphManager.visitor.map(DensityFunction.fromJson({ type: this.name, ...this.properties, ...input_dfs }, (obj) => obj as DensityFunction)))
+                this.df = new PersistentCacheDensityFunction(this.graphManager.visitor.map(DensityFunction.fromJson({ type: this.name, ...this.properties, ...input_dfs }, (obj) => obj as DensityFunction)))
                 this.warning = Warning.create(this.df)
             } catch (e) {
-                GraphManager.uiInterface.logger.error(e, "Density Function Error")
+                this.graphManager.uiInterface.logger.error(e, "Density Function Error")
                 this.df = DensityFunction.Constant.ZERO
                 console.warn(e)
             }

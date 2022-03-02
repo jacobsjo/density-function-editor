@@ -1,6 +1,5 @@
 import { DensityFunction, Holder, Identifier, WorldgenRegistries } from "deepslate";
 import { IContextMenuItem, IWidget, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
-import { DatapackManager } from "../DatapackManager";
 import { PersistentCacheDensityFunction } from "../DensityFunction/PersistentCacheDensityFunction";
 import { GraphManager } from "../UI/GraphManager";
 import { LGraphNodeFixed } from "./LGraphNodeFixed";
@@ -14,7 +13,9 @@ export class NamedDensityFunctionNode extends LGraphNodeFixed {
 
     allowMultipleOutputs = true
 
-    constructor() {
+    constructor(
+        private readonly graphManager: GraphManager
+    ) {
         super()
         this.addOutput("output", "densityFunction", { locked: true, nameLocked: true });
         this.addProperty("id", "", "string")
@@ -24,7 +25,7 @@ export class NamedDensityFunctionNode extends LGraphNodeFixed {
             this.has_change = true
         }, { values: WorldgenRegistries.DENSITY_FUNCTION.keys().sort().map(df => df.toString()) })
         this.addWidget("button", "open", "Open", () => {
-            DatapackManager.datapack.get("worldgen/density_function", this.properties.id).then(json => GraphManager.loadJSON(json, this.properties.id))
+            this.graphManager.datapackManager.getDatapack().get("worldgen/density_function", this.properties.id).then(json => this.graphManager.loadJSON(json, this.properties.id))
         })
         this.title = "Named Density Function"
         this.color = "#003300"
@@ -57,7 +58,9 @@ export class NamedDensityFunctionNode extends LGraphNodeFixed {
 
     onExecute() {
         if (this.df === undefined || this.has_change) {
-            this.df = new PersistentCacheDensityFunction(WorldgenRegistries.DENSITY_FUNCTION.get(Identifier.parse(this.properties.id)) ? new DensityFunction.HolderHolder(Holder.reference(WorldgenRegistries.DENSITY_FUNCTION, Identifier.parse(this.properties.id))).mapAll(GraphManager.visitor) : DensityFunction.Constant.ZERO)
+            this.df = new PersistentCacheDensityFunction(WorldgenRegistries.DENSITY_FUNCTION.get(Identifier.parse(this.properties.id))
+                    ? new DensityFunction.HolderHolder(Holder.reference(WorldgenRegistries.DENSITY_FUNCTION, Identifier.parse(this.properties.id))).mapAll(this.graphManager.visitor)
+                    : DensityFunction.Constant.ZERO)
         }
 
         this.setOutputData(0, {

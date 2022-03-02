@@ -20,7 +20,9 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
 
     allowMultipleOutputs = false
 
-    constructor(){
+    constructor(
+        private readonly graphManager: GraphManager
+    ){
         super()
 
         this.addInput("coordinate", "densityFunction", {label: "coordinate", locked: true, nameLocked: true})
@@ -75,7 +77,7 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
         const error = (input === undefined || input.error)
 
         if (this.df === undefined || this.has_change || input.changed){
-            this.df = (input && input.df !== undefined) ? new PersistentCacheDensityFunction(GraphManager.visitor.map(new DensityFunction.Spline(
+            this.df = (input && input.df !== undefined) ? new PersistentCacheDensityFunction(this.graphManager.visitor.map(new DensityFunction.Spline(
                 new CubicSpline.MultiPoint<DensityFunction.Context>(
                     input.df, this.splineWidget.value.locations, this.splineWidget.value.values as CubicSpline.Constant[], this.splineWidget.value.derivatives),
                 this.properties.min_value,

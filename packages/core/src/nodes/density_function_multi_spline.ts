@@ -20,7 +20,8 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
     allowMultipleOutputs = false
 
     constructor(
-        json: any
+        json: any,
+        private readonly graphManager: GraphManager
     ){
         super()
 
@@ -89,7 +90,7 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
         outputIndex: number
     ): boolean {
         if (this.input_map.get(this.getInputInfo(inputIndex).name).is_multiple && (outputNode instanceof LGraphNodeFixed) && !(outputNode.allowMultipleOutputs)){
-            GraphManager.uiInterface.logger.error("You can only connect named density functions or constants here", "This input is used multiple times by the spline")
+            this.graphManager.uiInterface.logger.error("You can only connect named density functions or constants here", "This input is used multiple times by the spline")
             return false
         }
 

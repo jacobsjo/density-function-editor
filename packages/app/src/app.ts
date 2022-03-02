@@ -5,7 +5,12 @@ import { MenuManager } from './MenuManager';
 import { WebUIInterface } from "./WebUIInterface";
 
 onload = async () => {
-    MenuManager.addHandlers()
-    await DatapackManager.init("./data/vanilla_datapack_1_18_2.zip")
-    GraphManager.init(new WebUIInterface())
+    const uiInterface = new WebUIInterface()
+
+    const datapackManager = new DatapackManager(uiInterface, true)
+    await datapackManager.init("./data/vanilla_datapack_1_18_2.zip")
+
+    const graphManager = new GraphManager(uiInterface, datapackManager)
+    MenuManager.addHandlers(datapackManager, graphManager)
+
 }

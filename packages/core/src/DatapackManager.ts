@@ -1,34 +1,55 @@
-import { DensityFunction, Identifier, NoiseParameters, NoiseSettings, WorldgenRegistries } from "deepslate";
-import { IContextMenuItem } from "litegraph.js";
-import { CompositeDatapack, Datapack, ZipDatapack } from "mc-datapack-loader";
-import { GraphManager } from "./UI/GraphManager";
+import { DensityFunction, Identifier, NoiseParameters, NoiseSettings, WorldgenRegistries } from "deepslate"
+import { IContextMenuItem } from "litegraph.js"
+import { CompositeDatapack, Datapack, ZipDatapack } from "mc-datapack-loader"
+import { GraphManager } from "./UI/GraphManager"
+import { UIInterface } from "./UIInterface"
+import { noise_router_fields } from "./vanilla/schemas"
 
-import { noise_router_fields } from "./vanilla/schemas";
 
-export class DatapackManager {
-    static datapack: CompositeDatapack
-    static vanilla_datapack: Datapack
-    static noise_settings: Map<string, NoiseSettings> = new Map()
 
-    static async init(vanilla_datapack_url: string) {
+export class DatapackManager{
+    private vanilla_datapack: Datapack
+    private noise_settings: Map<string, NoiseSettings> = new Map()
+
+   constructor (
+       private uiInterface: UIInterface,
+       private include_open: boolean,
+       private datapack?: Datapack
+   ) {
+        if (this.datapack !== undefined){
+            this.reload()
+        }
+    }
+
+    getDatapack(): Datapack {
+        return this.datapack
+    }
+
+    getNoiseSettings(): Map<string, NoiseSettings> {
+        return this.noise_settings
+    }
+
+    async init(vanilla_datapack_url: string){
         this.vanilla_datapack = await ZipDatapack.fromUrl(vanilla_datapack_url)
         this.datapack = new CompositeDatapack([this.vanilla_datapack])
         await this.reload()
     }
 
-    static async openDatapack(datapack: Datapack) {
-        this.datapack.readers = [this.vanilla_datapack, datapack]
-        await this.reload()
+    async openDatapack(datapack: Datapack) {
+        if (this.datapack instanceof CompositeDatapack){
+            this.datapack.readers = [this.vanilla_datapack, datapack]
+            await this.reload()
+        }
     }
 
-    static async reload() {
+    async reload() {
         WorldgenRegistries.DENSITY_FUNCTION.clear()
         for (const df of await this.datapack.getIds("worldgen/density_function")) {
             try {
                 const json = await this.datapack.get("worldgen/density_function", df)
                 WorldgenRegistries.DENSITY_FUNCTION.register(Identifier.parse(df), DensityFunction.fromJson(json))
             } catch (e) {
-                GraphManager.uiInterface.logger.error(e, `Could not load density function ${df}`)
+                this.uiInterface.logger.error(e, `Could not load density function ${df}`)
             }
         }
 
@@ -38,7 +59,7 @@ export class DatapackManager {
                 const json = await this.datapack.get("worldgen/noise", n)
                 WorldgenRegistries.NOISE.register(Identifier.parse(n), NoiseParameters.fromJson(json))
             } catch (e) {
-                GraphManager.uiInterface.logger.error(e, `Could not load noise ${n}`)
+                this.uiInterface.logger.error(e, `Could not load noise ${n}`)
             }
         }
 
@@ -48,17 +69,21 @@ export class DatapackManager {
                 const json: any = await this.datapack.get("worldgen/noise_settings", ns)
                 this.noise_settings.set(ns, NoiseSettings.fromJson(json.noise))
             } catch (e) {
-                GraphManager.uiInterface.logger.error(e, `Could not load noise settings ${ns}`)
+                this.uiInterface.logger.error(e, `Could not load noise settings ${ns}`)
             }
         }
     }
 
-    static async closeDatapacks() {
-        this.datapack.readers = [this.vanilla_datapack]
+    async closeDatapacks() {
+        if (this.datapack instanceof CompositeDatapack){
+            this.datapack.readers = [this.vanilla_datapack]
+           this.reload()
+        }
     }
 
-    static getMenuOptions(): IContextMenuItem[] {
-        return [{
+    
+    getMenuOptions(graphManager: GraphManager): IContextMenuItem[] {
+        return this.include_open ? [{
             content: "Open",
             title: "Open",
             has_submenu: true,
@@ -76,18 +101,18 @@ export class DatapackManager {
                                 callback: () => {
                                     var ns = this.tryGetNoiseSettingsFromDensityFunction(df.toString())
                                     if (Array.isArray(ns)) {
-                                        GraphManager.uiInterface.prompt("Which noise settings should be used?", ns[0]).then(ns => {
+                                        this.uiInterface.prompt("Which noise settings should be used?", ns[0]).then(ns => {
                                             if (!this.noise_settings.has(ns)) {
-                                                GraphManager.uiInterface.logger.warn(`using minecraft:overworld`, `Noise settings unknown`)
+                                                this.uiInterface.logger.warn(`using minecraft:overworld`, `Noise settings unknown`)
                                                 ns = "minecraft:overworld"
                                             }
-                                            GraphManager.setNoiseSettings(Identifier.parse(ns))
-                                            this.datapack.get("worldgen/density_function", df.toString()).then(json => GraphManager.loadJSON(json, df.toString()))
+                                            graphManager.setNoiseSettings(Identifier.parse(ns))
+                                            this.datapack.get("worldgen/density_function", df.toString()).then(json => graphManager.loadJSON(json, df.toString()))
                                         })
                                     } else {
-                                        GraphManager.uiInterface.logger.info(`using noise settings ${ns}`)
-                                        GraphManager.setNoiseSettings(Identifier.parse(ns))
-                                        this.datapack.get("worldgen/density_function", df.toString()).then(json => GraphManager.loadJSON(json, df.toString()))
+                                        this.uiInterface.logger.info(`using noise settings ${ns}`)
+                                        graphManager.setNoiseSettings(Identifier.parse(ns))
+                                        this.datapack.get("worldgen/density_function", df.toString()).then(json => graphManager.loadJSON(json, df.toString()))
                                     }
                                 }
                             }
@@ -111,8 +136,8 @@ export class DatapackManager {
                                             has_submenu: false,
                                             callback: () => {
                                                 this.datapack.get("worldgen/noise_settings", ns).then((json: any) => {
-                                                    GraphManager.setNoiseSettings(Identifier.parse(ns))
-                                                    GraphManager.loadJSON(json.noise_router[field], ns + "/" + field)
+                                                    graphManager.setNoiseSettings(Identifier.parse(ns))
+                                                    graphManager.loadJSON(json.noise_router[field], ns + "/" + field)
                                                 })
                                             }
                                         }
@@ -123,10 +148,10 @@ export class DatapackManager {
                     }
                 }]
             }
-        }]
+        }] : []
     }
 
-    static tryGetNoiseSettingsFromDensityFunction(df_id: string): string | string[] {
+    tryGetNoiseSettingsFromDensityFunction(df_id: string): string | string[] {
         const [namespace, path] = df_id.split(":", 2)
         const folders = path.split("/")
 
@@ -155,7 +180,7 @@ export class DatapackManager {
         return []
     }
 
-    static async datapackSave(json: any, id: string) {
+    async datapackSave(json: any, id: string) {
         if (!this.datapack.canSave()) {
             return false
         } else {
@@ -164,7 +189,7 @@ export class DatapackManager {
                 return false
             }
 
-            GraphManager.uiInterface.logger.success(id, "Denisty function saved")
+            this.uiInterface.logger.success(id, "Denisty function saved")
 
             return true
         }

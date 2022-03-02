@@ -16,40 +16,44 @@ import { CommentArray, CommentToken } from "comment-json";
 import { LGraphNodeFixed } from "../nodes/LGraphNodeFixed";
 
 export class GraphManager {
-    static output_node: LGraphNode
-    static graph: LGraph
-    static canvas: LGraphCanvas
+    output_node: LGraphNode
+    graph: LGraph
+    canvas: LGraphCanvas
 
-    static named_nodes: { [key: string]: NamedDensityFunctionNode[] }
-    static constant_nodes: { [key: string]: ConstantDensityFunctionNode[] }
+    named_nodes: { [key: string]: NamedDensityFunctionNode[] }
+    constant_nodes: { [key: string]: ConstantDensityFunctionNode[] }
 
-    static has_change: boolean = false
+    has_change: boolean = false
 
-    static id: string
+    id: string
 
-    static oldJson: unknown = {}
+    oldJson: unknown = {}
 
-    static noiseSettings: Identifier
-    static visitor: DensityFunction.Visitor
+    noiseSettings: Identifier
+    visitor: DensityFunction.Visitor
 
-    private static currentLink: LLink = undefined
-    private static preview_canvas: HTMLCanvasElement
+    private currentLink: LLink = undefined
+    private preview_canvas: HTMLCanvasElement
 
-    private static preview_id: number = 2
-    private static preview_size = 200
+    private preview_id: number = 2
+    private preview_size = 200
 
-    static uiInterface: UIInterface
+    uiInterface: UIInterface
+    datapackManager: DatapackManager;
 
-    static init(uiInterface: UIInterface) {
+    constructor(uiInterface: UIInterface, datapackManager: DatapackManager) {
         this.uiInterface = uiInterface
+        this.datapackManager = datapackManager
+
         LiteGraph.clearRegisteredTypes() // don't use default node types
-        registerNodes()
+        registerNodes(this)
 
         this.setNoiseSettings(Identifier.parse("minecraft:overworld"))
 
         this.preview_canvas = document.createElement("canvas")
 
         this.graph = new LGraph();
+        console.log(this.graph)
 
         this.canvas = new LGraphCanvas("#mycanvas", this.graph);
         this.canvas.resize()
@@ -66,7 +70,7 @@ export class GraphManager {
 
             const pos = (link as any)._pos;
             const data = (link as any).data;
-            const preview_mode: PreviewMode = new (PreviewMode.PREVIEW_MODES[this.preview_id])(NoiseSettings.cellWidth(DatapackManager.noise_settings.get(this.noiseSettings.toString())))
+            const preview_mode: PreviewMode = new (PreviewMode.PREVIEW_MODES[this.preview_id])(NoiseSettings.cellWidth(this.datapackManager.getNoiseSettings().get(this.noiseSettings.toString())))
 
             if (data === undefined || data.df === undefined) {
                 return
@@ -176,21 +180,21 @@ export class GraphManager {
 
         this.canvas.onShowNodePanel = (n) => { }
 
-        this.output_node = new DensityFunctionOutputNode(); // not registered as only one exists
+        this.output_node = new DensityFunctionOutputNode(this); // not registered as only one exists
         this.output_node.pos = [900, 400];
         this.graph.add(this.output_node);
 
         this.graph.start(50)
 
 
-        this.canvas.getExtraMenuOptions = () => DatapackManager.getMenuOptions()
+        this.canvas.getExtraMenuOptions = () => this.datapackManager.getMenuOptions(this)
 
         this.graph.beforeChange = (_info?: LGraphNode) => {
             this.has_change = true
         }
     }
 
-    static onKeyDown(ev: KeyboardEvent){
+    onKeyDown(ev: KeyboardEvent){
         if (this.currentLink !== undefined && ev.key === "Tab") {
             this.preview_id = (this.preview_id + 1) % PreviewMode.PREVIEW_MODES.length
             this.currentLink = undefined // redraw
@@ -200,16 +204,16 @@ export class GraphManager {
         }
     }
 
-    static setNoiseSettings(ns: Identifier) {
+    setNoiseSettings(ns: Identifier) {
         this.noiseSettings = ns
-        this.visitor = new NoiseRouter.Visitor(XoroshiroRandom.create(BigInt(0)).forkPositional(), DatapackManager.noise_settings.get(ns.toString()))
+        this.visitor = new NoiseRouter.Visitor(XoroshiroRandom.create(BigInt(0)).forkPositional(), this.datapackManager.getNoiseSettings().get(ns.toString()))
     }
 
-    static hasChanged() {
+    hasChanged() {
         return (JSON.stringify(this.getOutput().json) !== JSON.stringify(this.oldJson)) // JSON.strigify to ignore comments
     }
 
-    static clear(id?: string) {
+    clear(id?: string) {
         if (this.hasChanged() && !this.uiInterface.confirm("You have unsaved changes. Continue?")) {
             return
         }
@@ -218,7 +222,7 @@ export class GraphManager {
         this.named_nodes = {}
         this.constant_nodes = {}
 
-        this.output_node = new DensityFunctionOutputNode(); // not registered as only one exists
+        this.output_node = new DensityFunctionOutputNode(this); // not registered as only one exists
         this.output_node.pos = [900, 400];
         this.graph.add(this.output_node);
 
@@ -230,7 +234,14 @@ export class GraphManager {
         this.updateTitle()
     }
 
-    static getOutput(): { json: unknown, error: boolean, df: DensityFunction } {
+    getOutput(): { json: unknown, error: boolean, df: DensityFunction } {
+        if (!this.graph){
+            return {
+                json: {},
+                error: true,
+                df: undefined
+            }
+        }
         this.graph.runStep()
         const output = this.output_node.getInputDataByName("result") ?? { json: {}, error: true, df: DensityFunction.Constant.ZERO }
         output.json[Symbol.for('before-all')] = [{
@@ -246,19 +257,19 @@ export class GraphManager {
         return output
     }
 
-    static setSaved() {
+    setSaved() {
         this.has_change = false
         this.oldJson = this.getOutput().json
     }
 
-    static autoLayout(){
+    autoLayout(){
         this.loadJSON(this.getOutput().json, this.id, true)
     }
 
-    static loadJSON(json: any, id?: string, relayout: boolean = false): boolean {
-        if (this.hasChanged() && !this.uiInterface.confirm("You have unsaved changes. Continue?")) {
-            return
-        }
+    loadJSON(json: any, id?: string, relayout: boolean = false): boolean {
+        //if (this.hasChanged() && !this.uiInterface.confirm("You have unsaved changes. Continue?")) {
+        //    return
+        //}
 
         this.id = id
 
@@ -266,7 +277,7 @@ export class GraphManager {
         this.named_nodes = {}
         this.constant_nodes = {}
 
-        this.output_node = new DensityFunctionOutputNode(); // not registered as only one exists
+        this.output_node = new DensityFunctionOutputNode(this); // not registered as only one exists
         this.graph.add(this.output_node);
 
         try {
@@ -300,8 +311,8 @@ export class GraphManager {
         return true
     }
 
-    public static reload() {
-        if (!DatapackManager.noise_settings.has(this.noiseSettings.toString())) {
+    public reload() {
+        if (!this.datapackManager.getNoiseSettings().has(this.noiseSettings.toString())) {
             this.uiInterface.logger.warn(`falling back to minecraft:overworld; reopen file to change`, `The used noise settings ${this.noiseSettings.toString()} were removed`)
             this.noiseSettings = Identifier.parse("minecraft:overworld")
         }
@@ -311,11 +322,11 @@ export class GraphManager {
         this.graph.sendEventToAllNodes("onReload", [])
     }
 
-    private static updateTitle() {
+    private updateTitle() {
         window.document.title = `${this.id ? this.id + " - " : ""}Density Function Editor`
     }
 
-    private static createNodeFromJson(json: any, pos: [number, number], relayout: boolean, fix_pos: boolean = false): [LGraphNode, number] {
+    private createNodeFromJson(json: any, pos: [number, number], relayout: boolean, fix_pos: boolean = false): [LGraphNode, number] {
         if (typeof json === "string") {
             if (json in this.named_nodes) {
                 for (const node of this.named_nodes[json]){
@@ -379,7 +390,7 @@ export class GraphManager {
                 }
 
                 if (multi_d) {
-                    node = new MultiSplineDensityFunctionNode(json)
+                    node = new MultiSplineDensityFunctionNode(json, this)
                     node.mode = LiteGraph.ALWAYS; // needed as node is not created from registy
                     var y = pos[1]
 
@@ -487,7 +498,7 @@ export class GraphManager {
         }
     }
 
-    private static handleComments(comments : CommentToken[]){
+    private handleComments(comments : CommentToken[]){
         if (comments !== undefined){
             for (const comment of comments){
                 if (comment.type === "LineComment" && comment.value.startsWith("[df-editor]:")){

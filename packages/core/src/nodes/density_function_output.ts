@@ -7,7 +7,9 @@ export class DensityFunctionOutputNode extends LGraphNode{
     clonable: boolean;
     block_delete: boolean;
 
-    constructor(){
+    constructor(
+        private readonly graphManager: GraphManager
+    ){
         super()
         this.title = "Output"
         this.color = "#330000"
@@ -27,15 +29,15 @@ export class DensityFunctionOutputNode extends LGraphNode{
     }
 
     getTitle() {
-        if (GraphManager.id === undefined){
+        if (this.graphManager.id === undefined){
             return "Output"
         }
 
         if (this.flags.collapsed){
-            const str = GraphManager.id.split(":",2)[1]
+            const str = this.graphManager.id.split(":",2)[1]
             return str.substr(str.lastIndexOf("/") + 1)
         } else {
-            return GraphManager.id
+            return this.graphManager.id
         }
     }
 

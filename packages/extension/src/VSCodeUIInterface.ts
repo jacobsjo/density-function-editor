@@ -1,11 +1,12 @@
 import { UIInterface } from "df-editor-core/src/UIInterface";
 //import * as vscode from 'vscode';
 
-declare const acquireVsCodeApi;
-
-const vscode = acquireVsCodeApi();
 
 export class VSCodeUIInterface implements UIInterface{
+
+    constructor(
+        private readonly vscode: any
+    ){ }
 
     logger = {
         debug(message: string | Error, title?: string): void {

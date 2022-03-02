@@ -52,9 +52,13 @@
 		"webpack-cli": "^4.9.2"
 	},
 	"dependencies": {
+		"jszip": "^3.6.0",
 		"buffer": "^6.0.3",
 		"comment-json": "4.2.2",
 		"path-browserify": "^1.0.1",
-		"df-editor-core": "0.1.0"
+		"df-editor-core": "0.1.0",
+		"mc-datapack-loader": "0.1.0",
+		"deepslate": "0.9.0-beta.14",
+		"litegraph.js": "^0.7.10"
 	}
 }

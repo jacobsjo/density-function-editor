@@ -11,7 +11,9 @@ export class ConstantDensityFunctionNode extends LGraphNodeFixed{
 
     allowMultipleOutputs = true
 
-    constructor(){
+    constructor(
+        private readonly graphManager: GraphManager
+    ){
         super()
         const output = this.addOutput("output","densityFunction", {locked: true, nameLocked: true});
         this.addProperty("value", 0, "number")
@@ -51,7 +53,7 @@ export class ConstantDensityFunctionNode extends LGraphNodeFixed{
             ],
             error: false,
             changed: this.has_change,
-            df: GraphManager.visitor.map(new DensityFunction.Constant(this.properties.value))
+            df: this.graphManager.visitor.map(new DensityFunction.Constant(this.properties.value))
         })
         this.has_change = false
     }
