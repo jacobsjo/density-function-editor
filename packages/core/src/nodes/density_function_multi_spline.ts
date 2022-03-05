@@ -1,44 +1,44 @@
 import { CubicSpline, DensityFunction } from "deepslate";
-import { INodeOutputSlot, IWidget, LGraphNode, LiteGraph} from "litegraph.js";
+import { INodeOutputSlot, IWidget, LGraphNode, LiteGraph } from "litegraph.js";
 import { GraphManager } from "../UI/GraphManager";
 import { LGraphNodeFixed } from "./LGraphNodeFixed";
 
 const spline_values = ["offset", "factor", "jaggedness"]
 const sampler_types = ["type_1", "type_2"]
 
-export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
+export class MultiSplineDensityFunctionNode extends LGraphNodeFixed {
 
     static title = "spline"
-    
-    private wdgs: {[key: string]: IWidget} = {}
+
+    private wdgs: { [key: string]: IWidget } = {}
     private has_change: boolean = false
 
     private readonly spline: CubicSpline<DensityFunction.Context>
 
-    public readonly input_map: Map<string, {json: any, function: PassthroghDensityFunction, is_multiple: boolean}>
+    public readonly input_map: Map<string, { json: any, function: PassthroghDensityFunction, is_multiple: boolean }>
 
     allowMultipleOutputs = false
 
     constructor(
         json: any,
         private readonly graphManager: GraphManager
-    ){
+    ) {
         super()
 
         this.input_map = new Map()
 
-        this.addOutput("output", "densityFunction", {locked: true, nameLocked: true});
+        this.addOutput("output", "densityFunction", { locked: true, nameLocked: true });
 
         var i = 0
         this.spline = CubicSpline.fromJson(json.spline, (j: unknown) => {
-            if (typeof j === "string" || typeof j === "number"){
+            if (typeof j === "string" || typeof j === "number") {
                 var input_name: string
                 if (typeof j === "number")
                     input_name = `number_${j}`
-                else 
+                else
                     input_name = j
 
-                if (this.input_map.has(input_name)){
+                if (this.input_map.has(input_name)) {
                     this.input_map.get(input_name).is_multiple = true
                     return this.input_map.get(input_name).function
                 } else {
@@ -62,21 +62,22 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
             }
         })
 
-        for (const [input_name, input] of this.input_map){
-            this.addInput(input_name, "densityFunction", {label: input_name, locked: true, nameLocked: true, shape: input.is_multiple ? LiteGraph.ARROW_SHAPE : LiteGraph.CIRCLE_SHAPE})
+        for (const [input_name, input] of this.input_map) {
+            this.addInput(input_name, "densityFunction", { label: input_name, locked: true, nameLocked: true, shape: input.is_multiple ? LiteGraph.ARROW_SHAPE : LiteGraph.CIRCLE_SHAPE })
         }
 
         this.addProperty("min_value", json.min_value, "number")
         this.wdgs.min_value = this.addWidget("number", "min_value", json.min_value, (value) => {
             this.properties.min_value = value
             this.has_change = true
+            this.graph.afterChange()
         })
         this.addProperty("max_value", json.max_value, "number")
         this.wdgs.max_value = this.addWidget("number", "max_value", json.max_value, (value) => {
             this.properties.max_value = value
             this.has_change = true
-    
-    }),
+            this.graph.afterChange()
+        })
 
         this.title = "spline"
         this.color = "#330000"
@@ -89,7 +90,7 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
         outputNode: LGraphNode,
         outputIndex: number
     ): boolean {
-        if (this.input_map.get(this.getInputInfo(inputIndex).name).is_multiple && (outputNode instanceof LGraphNodeFixed) && !(outputNode.allowMultipleOutputs)){
+        if (this.input_map.get(this.getInputInfo(inputIndex).name).is_multiple && (outputNode instanceof LGraphNodeFixed) && !(outputNode.allowMultipleOutputs)) {
             this.graphManager.uiInterface.logger.error("You can only connect named density functions or constants here", "This input is used multiple times by the spline")
             return false
         }
@@ -98,28 +99,28 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
     }
 
 
-    public updateWidgets(){
+    public updateWidgets() {
         this.wdgs.min_value.value = this.properties.min_value
         this.wdgs.max_value.value = this.properties.max_value
     }
 
-    onConnectionsChange(){
+    onConnectionsChange() {
         this.color = this.inputs.filter(i => !i.link).length > 0 ? "#330000" : "#000033"
         this.has_change = true
     }
 
-    onExecute(){
+    onExecute() {
         this.color = this.inputs.filter(i => !i.link).length > 0 ? "#330000" : "#000033"
 
         var error = false
         var input_has_error = false
         var input_has_changed = false
-        ;(this as any).setSize(this.computeSize())
-        for (const [input, f] of this.input_map){
+            ; (this as any).setSize(this.computeSize())
+        for (const [input, f] of this.input_map) {
             f.function.input_name = input
 
             const i = this.getInputDataByName(input)
-            if (i === undefined){
+            if (i === undefined) {
                 error = true
                 f.function.wrapping = DensityFunction.Constant.ZERO
             } else {
@@ -130,16 +131,16 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
         }
 
         const splineToJson: (spline: CubicSpline<DensityFunction.Context>) => any = (spline: CubicSpline<DensityFunction.Context>) => {
-            if (spline instanceof CubicSpline.Constant){
+            if (spline instanceof CubicSpline.Constant) {
                 return spline.compute()
             } else if (spline instanceof CubicSpline.MultiPoint) {
-                
+
                 const coordinate = this.getInputDataByName((spline.coordinate as PassthroghDensityFunction).input_name)?.json ?? {
                     json: {}, error: true, changed: false, df: DensityFunction.Constant.ZERO
                 }
-                
+
                 const points = []
-                for (var i = 0 ; i < spline.locations.length ; i++){
+                for (var i = 0; i < spline.locations.length; i++) {
                     points.push({
                         location: spline.locations[i],
                         value: splineToJson(spline.values[i]),
@@ -150,7 +151,7 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
                 return {
                     coordinate: Array.isArray(coordinate) ? coordinate[0] : coordinate,
                     points: points,
-                    ...((Array.isArray(coordinate)) && {[Symbol.for('after:coordinate')]: coordinate[1]})
+                    ...((Array.isArray(coordinate)) && { [Symbol.for('after:coordinate')]: coordinate[1] })
                 }
             }
         }
@@ -171,9 +172,10 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
                         collapsed: this.flags.collapsed ?? false
                     }),
                     inline: false,
-                    loc: {start: {line: 0, column: 0}, end: {line: 0, column: 1}
+                    loc: {
+                        start: { line: 0, column: 0 }, end: { line: 0, column: 1 }
                     }
-                }]                       
+                }]
             },
             error: error || input_has_error,
             changed: this.has_change || input_has_changed,
@@ -184,14 +186,14 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
     }
 }
 
-class PassthroghDensityFunction implements DensityFunction{
+class PassthroghDensityFunction implements DensityFunction {
     public wrapping: DensityFunction = DensityFunction.Constant.ZERO
     public input_name: string = ""
 
     compute(c: DensityFunction.Context): number {
         return this.wrapping.compute(c)
     }
-  
+
     minValue(): number {
         return this.wrapping.minValue()
     }

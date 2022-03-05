@@ -23,11 +23,14 @@ export class ProxyDatapack implements Datapack {
         });
 
         return new Promise<T>(resolve => {
-            window.addEventListener("message", (message) => {
+            const handler = (message: MessageEvent) => {
                 if (message.data.result && message.data.result === command && message.data.requestId === requestId ){
                     resolve(message.data.text)
+                    window.removeEventListener("message", handler)
                 }
-            }, {once: true})
+            }
+
+            window.addEventListener("message", handler)
         })
 
     }

@@ -16,9 +16,9 @@ export class DatapackManager{
        private include_open: boolean,
        private datapack?: Datapack
    ) {
-        if (this.datapack !== undefined){
+        /*if (this.datapack !== undefined){
             this.reload()
-        }
+        }*/
     }
 
     getDatapack(): Datapack {
@@ -44,10 +44,12 @@ export class DatapackManager{
 
     async reload() {
         WorldgenRegistries.DENSITY_FUNCTION.clear()
+        const promises: Promise<any>[] = []
         for (const df of await this.datapack.getIds("worldgen/density_function")) {
             try {
-                const json = await this.datapack.get("worldgen/density_function", df)
-                WorldgenRegistries.DENSITY_FUNCTION.register(Identifier.parse(df), DensityFunction.fromJson(json))
+                promises.push(this.datapack.get("worldgen/density_function", df).then(
+                    json => WorldgenRegistries.DENSITY_FUNCTION.register(Identifier.parse(df), DensityFunction.fromJson(json))
+                ))
             } catch (e) {
                 this.uiInterface.logger.error(e, `Could not load density function ${df}`)
             }
@@ -56,8 +58,9 @@ export class DatapackManager{
         WorldgenRegistries.NOISE.clear()
         for (const n of await this.datapack.getIds("worldgen/noise")) {
             try {
-                const json = await this.datapack.get("worldgen/noise", n)
-                WorldgenRegistries.NOISE.register(Identifier.parse(n), NoiseParameters.fromJson(json))
+                promises.push(this.datapack.get("worldgen/noise", n).then(
+                    json => WorldgenRegistries.NOISE.register(Identifier.parse(n), NoiseParameters.fromJson(json))
+                ))
             } catch (e) {
                 this.uiInterface.logger.error(e, `Could not load noise ${n}`)
             }
@@ -66,12 +69,15 @@ export class DatapackManager{
         this.noise_settings.clear()
         for (const ns of await this.datapack.getIds("worldgen/noise_settings")) {
             try {
-                const json: any = await this.datapack.get("worldgen/noise_settings", ns)
-                this.noise_settings.set(ns, NoiseSettings.fromJson(json.noise))
+                promises.push(this.datapack.get("worldgen/noise_settings", ns).then(
+                    (json: any) => this.noise_settings.set(ns, NoiseSettings.fromJson(json.noise))
+                ))
             } catch (e) {
                 this.uiInterface.logger.error(e, `Could not load noise settings ${ns}`)
             }
         }
+
+        //await Promise.all(promises)
     }
 
     async closeDatapacks() {

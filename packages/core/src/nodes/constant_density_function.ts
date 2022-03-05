@@ -20,6 +20,7 @@ export class ConstantDensityFunctionNode extends LGraphNodeFixed{
         this.wdgt = this.addWidget("number", "Value", 0, (value) => {
             this.properties.value = value
             this.has_change = true
+            this.graph.afterChange()
         }, { min: -1000000, max: 1000000})
         this.title = "Constant"
         this.color = "#000033"
@@ -53,7 +54,7 @@ export class ConstantDensityFunctionNode extends LGraphNodeFixed{
             ],
             error: false,
             changed: this.has_change,
-            df: this.graphManager.visitor.map(new DensityFunction.Constant(this.properties.value))
+            df: new DensityFunction.Constant(this.properties.value)
         })
         this.has_change = false
     }

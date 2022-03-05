@@ -29,18 +29,21 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
         this.addOutput("output", "densityFunction", {locked: true, nameLocked: true});
         this.splineWidget = this.addCustomWidget<SplineWidget>(new SplineWidget(() => {
             this.has_change = true
+            this.graph.afterChange()
         }))
         this.addProperty("min_value", -1, "number")
         this.wdgs.min_value = this.addWidget("number", "min_value", -1, (value) => {
             this.properties.min_value = value
             this.splineWidget.min_value = value
             this.has_change = true
+            this.graph.afterChange()
         }, { min: -1000000, max: 1000000})
         this.addProperty("max_value", 1, "number")
         this.wdgs.max_value = this.addWidget("number", "max_value", 1, (value) => {
             this.properties.max_value = value
             this.splineWidget.max_value = value
             this.has_change = true
+            this.graph.afterChange()
         }, { min: -1000000, max: 1000000})
 
         this.title = "spline"
@@ -76,7 +79,7 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
 
         const error = (input === undefined || input.error)
 
-        if (this.df === undefined || this.has_change || input.changed){
+        if ((this.df === undefined || this.has_change || input.changed) && this.graphManager.visitor !== undefined){
             this.df = (input && input.df !== undefined) ? new PersistentCacheDensityFunction(this.graphManager.visitor.map(new DensityFunction.Spline(
                 new CubicSpline.MultiPoint<DensityFunction.Context>(
                     input.df, this.splineWidget.value.locations, this.splineWidget.value.values as CubicSpline.Constant[], this.splineWidget.value.derivatives),

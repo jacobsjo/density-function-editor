@@ -19,10 +19,11 @@ export class NamedDensityFunctionNode extends LGraphNodeFixed {
         super()
         this.addOutput("output", "densityFunction", { locked: true, nameLocked: true });
         this.addProperty("id", "", "string")
-        this.wdgt = this.addWidget("combo", "Id", WorldgenRegistries.DENSITY_FUNCTION.keys().sort()[0].toString(), (value) => {
+        this.wdgt = this.addWidget("combo", "Id", WorldgenRegistries.DENSITY_FUNCTION.keys().sort()[0]?.toString(), (value) => {
             this.properties.id = value
             this.updateColor()
             this.has_change = true
+            this.graph.afterChange()
         }, { values: WorldgenRegistries.DENSITY_FUNCTION.keys().sort().map(df => df.toString()) })
         this.addWidget("button", "open", "Open", () => {
             this.graphManager.datapackManager.getDatapack().get("worldgen/density_function", this.properties.id).then(json => this.graphManager.loadJSON(json, this.properties.id))
@@ -57,7 +58,7 @@ export class NamedDensityFunctionNode extends LGraphNodeFixed {
     }
 
     onExecute() {
-        if (this.df === undefined || this.has_change) {
+        if ((this.df === undefined || this.has_change) && this.graphManager.visitor !== undefined) {
             this.df = new PersistentCacheDensityFunction(WorldgenRegistries.DENSITY_FUNCTION.get(Identifier.parse(this.properties.id))
                     ? new DensityFunction.HolderHolder(Holder.reference(WorldgenRegistries.DENSITY_FUNCTION, Identifier.parse(this.properties.id))).mapAll(this.graphManager.visitor)
                     : DensityFunction.Constant.ZERO)

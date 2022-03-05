@@ -23,8 +23,6 @@ export class GraphManager {
     named_nodes: { [key: string]: NamedDensityFunctionNode[] }
     constant_nodes: { [key: string]: ConstantDensityFunctionNode[] }
 
-    has_change: boolean = false
-
     id: string
 
     oldJson: unknown = {}
@@ -43,6 +41,8 @@ export class GraphManager {
     uiInterface: UIInterface
     datapackManager: DatapackManager;
 
+    private lastChangeTimer: number;
+
     constructor(uiInterface: UIInterface, datapackManager: DatapackManager, onChange?: (output: string) => void) {
         this.uiInterface = uiInterface
         this.datapackManager = datapackManager
@@ -55,7 +55,6 @@ export class GraphManager {
         this.preview_canvas = document.createElement("canvas")
 
         this.graph = new LGraph();
-        console.log(this.graph)
 
         this.canvas = new LGraphCanvas("#mycanvas", this.graph);
         this.canvas.resize()
@@ -191,13 +190,15 @@ export class GraphManager {
 
         this.canvas.getExtraMenuOptions = () => this.datapackManager.getMenuOptions(this)
 
-        this.graph.beforeChange = (_info?: LGraphNode) => {
-            this.has_change = true
-        }
-
         this.graph.afterChange = () => {
             if (onChange && !this.isLoading){
-                onChange(stringify(this.getOutput().json, null, 2))
+                if (this.lastChangeTimer){
+                    window.clearTimeout(this.lastChangeTimer)
+                }
+                this.lastChangeTimer = window.setTimeout(() => {
+                    this.lastChangeTimer = undefined
+                    onChange(stringify(this.getOutput().json, null, 2))
+                }, 1000)
             }
         }
     }
@@ -236,7 +237,6 @@ export class GraphManager {
         this.output_node.pos = [900, 400];
         this.graph.add(this.output_node);
 
-        this.has_change = false
         this.id = id
 
         this.graph.start(50)
@@ -270,7 +270,6 @@ export class GraphManager {
     }
 
     setSaved() {
-        this.has_change = false
         this.oldJson = this.getOutput().json
     }
 
@@ -320,7 +319,6 @@ export class GraphManager {
         }
 
         this.graph.start(50)
-        this.has_change = false
         this.oldJson = this.getOutput().json
 
         this.updateTitle()

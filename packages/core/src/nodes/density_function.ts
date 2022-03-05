@@ -45,18 +45,21 @@ export class DensityFunctionNode extends LGraphNodeFixed {
                 this.wdgs[argument] = this.addWidget("number", argument, 0, (value) => {
                     this.properties[argument] = value
                     this.has_change = true
+                    this.graph.afterChange()
                 }, { min: -1000000, max: 1000000 })
             } else if (type === "spline") {
                 this.addProperty(argument, 0, "string")
                 this.wdgs[argument] = this.addWidget("combo", argument, "offset", (value) => {
                     this.properties[argument] = value
                     this.has_change = true
+                    this.graph.afterChange()
                 }, { values: spline_values })
             } else if (type === "noise") {
-                this.addProperty(argument, WorldgenRegistries.NOISE.keys().sort()[0].toString(), "string")
+                this.addProperty(argument, WorldgenRegistries.NOISE.keys().sort()[0]?.toString(), "string")
                 this.wdgs[argument] = this.addWidget("combo", argument, WorldgenRegistries.NOISE.keys()[0].toString(), (value) => {
                     this.properties[argument] = value
                     this.has_change = true
+                    this.graph.afterChange()
                 }, { values: WorldgenRegistries.NOISE.keys().sort().map(k => k.toString()) })
                 this.noiseWdgs.push(this.wdgs[argument])
             } else if (type === "sampler_type") {
@@ -64,6 +67,7 @@ export class DensityFunctionNode extends LGraphNodeFixed {
                 this.wdgs[argument] = this.addWidget("combo", argument, "type_1", (value) => {
                     this.properties[argument] = value
                     this.has_change = true
+                    this.graph.afterChange()
                 }, { values: sampler_types })
             }
         })
@@ -117,7 +121,7 @@ export class DensityFunctionNode extends LGraphNodeFixed {
             }
         })
 
-        if (this.df === undefined || this.has_change || input_has_changed) {
+        if ((this.df === undefined || this.has_change || input_has_changed) && this.graphManager.visitor !== undefined) {
             try {
                 this.df = new PersistentCacheDensityFunction(this.graphManager.visitor.map(DensityFunction.fromJson({ type: this.name, ...this.properties, ...input_dfs }, (obj) => obj as DensityFunction)))
                 this.warning = Warning.create(this.df)

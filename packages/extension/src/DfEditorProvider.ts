@@ -4,40 +4,43 @@ import path from 'path';
 import jszip from "jszip";
 import * as vscode from 'vscode';
 import { stringify } from 'comment-json';
+import { VSCodeDatapack } from './VSCodeDatapack';
 
 export class DfEditorProvider implements vscode.CustomTextEditorProvider {
     public static register(context: vscode.ExtensionContext): vscode.Disposable {
         const provider = new DfEditorProvider(context);
-        const providerRegistration = vscode.window.registerCustomEditorProvider(DfEditorProvider.viewType, provider);
+        const providerRegistration = vscode.window.registerCustomEditorProvider(DfEditorProvider.viewType, provider, {webviewOptions: {retainContextWhenHidden: true}});
         return providerRegistration;
     }
 
     private static readonly viewType = 'dfeditor.dfeditor';
     private datapack: Promise<CompositeDatapack>
 
-    private webviewPanel: vscode.WebviewPanel
-
     constructor(
         private readonly context: vscode.ExtensionContext
     ) {
 
+        console.log("creating datapacks")
+
         this.datapack = new Promise<CompositeDatapack>(resolve => {
             jszip.loadAsync(fs.readFileSync(vscode.Uri.file(path.join(this.context.extensionPath, "media", "vanilla_datapack_1_18_2.zip")).path)).then(zip => {
                 const vanillaDatapack = new ZipDatapack(zip as any)
-                const datapack = new CompositeDatapack([vanillaDatapack])
+                const vsCodeDatapack = new VSCodeDatapack()
+                const datapack = new CompositeDatapack([vanillaDatapack, vsCodeDatapack])
                 resolve(datapack)
             })
         })
     }
 
     public async resolveCustomTextEditor(document: vscode.TextDocument, webviewPanel: vscode.WebviewPanel, token: vscode.CancellationToken): Promise<void> {
-        this.webviewPanel = webviewPanel
 
         webviewPanel.webview.options = {
-            enableScripts: true
+            enableScripts: true,
         }
 
-        webviewPanel.webview.onDidReceiveMessage(async (message: any) => {
+        const disposables: vscode.Disposable[] = []
+
+        disposables.push(webviewPanel.webview.onDidReceiveMessage(async (message: any) => {
             var result: any
             switch (message.command) {
                 case "output-change":
@@ -50,6 +53,10 @@ export class DfEditorProvider implements vscode.CustomTextEditorProvider {
                     );
             
                     vscode.workspace.applyEdit(edit);
+                    return;
+                case "get-file":
+                    const paths = document.uri.path.match(".*\/data\/([^\/]*)\/worldgen\/density_function\/(.*)\.json")
+                    webviewPanel.webview.postMessage({ command: "file-change", text: document.getText(), id: `${paths[1]}:${paths[2]}`})
                     return;
                 case "datapack-has":
                     result = await (await this.datapack).has(message.text.type, message.text.id)
@@ -67,13 +74,17 @@ export class DfEditorProvider implements vscode.CustomTextEditorProvider {
                     result = await (await this.datapack).prepareSave()
                     break;
             }
-
             webviewPanel.webview.postMessage({ result: message.command, requestId: message.requestId, text: result })
-        })
 
-        vscode.workspace.onDidChangeTextDocument((e) => {
+        }))
+
+        disposables.push(vscode.workspace.onDidChangeTextDocument((e) => {
             webviewPanel.webview.postMessage({ command: "file-change", text: document.getText()})
-        })
+        }))
+
+        webviewPanel.onDidDispose(() => {
+			disposables.forEach(d => d.dispose());
+		});
 
         const webviewScriptUri = webviewPanel.webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "dist", "webview.js")))
         const litegraphCss = webviewPanel.webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "media", "litegraph.css")))
