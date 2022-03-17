@@ -4,6 +4,6 @@ import { MenuManager } from './UI/MenuManager';
 
 onload = async () => {
     MenuManager.addHandlers()
-    await DatapackManager.init()
+    await DatapackManager.init('snapshot')
     GraphManager.init()
 }

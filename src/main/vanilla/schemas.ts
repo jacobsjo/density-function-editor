@@ -127,15 +127,6 @@ export const schemas = new Map(Object.entries({
         group: "math",
         argument: "densityFunction",
     },
-    'terrain_shaper_spline': {
-        group: "special",
-        spline: "spline",
-        min_value: "number",
-        max_value: "number",
-        continentalness: "densityFunction",
-        erosion: "densityFunction",
-        weirdness: "densityFunction",
-    },
     'weird_scaled_sampler': {
         group: "input",
         rarity_value_mapper: "sampler_type",

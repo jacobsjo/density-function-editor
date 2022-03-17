@@ -66,18 +66,6 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
             this.addInput(input_name, "densityFunction", {label: input_name, locked: true, nameLocked: true, shape: input.is_multiple ? LiteGraph.ARROW_SHAPE : LiteGraph.CIRCLE_SHAPE})
         }
 
-        this.addProperty("min_value", json.min_value, "number")
-        this.wdgs.min_value = this.addWidget("number", "min_value", json.min_value, (value) => {
-            this.properties.min_value = value
-            this.has_change = true
-        })
-        this.addProperty("max_value", json.max_value, "number")
-        this.wdgs.max_value = this.addWidget("number", "max_value", json.max_value, (value) => {
-            this.properties.max_value = value
-            this.has_change = true
-    
-    }),
-
         this.title = "spline"
         this.color = "#330000"
     }
@@ -155,14 +143,11 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
             }
         }
 
-
-
+        this.spline.calculateMinMax()
 
         this.setOutputData(0, {
             json: {
                 "type": "minecraft:spline",
-                "min_value": this.properties.min_value,
-                "max_value": this.properties.max_value,
                 "spline": splineToJson(this.spline),
                 [Symbol.for('before:type')]: [{
                     type: 'LineComment',
@@ -177,7 +162,7 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
             },
             error: error || input_has_error,
             changed: this.has_change || input_has_changed,
-            df: new DensityFunction.Spline(this.spline, this.properties.min_value, this.properties.max_value)
+            df: new DensityFunction.Spline(this.spline)
         })
 
         this.has_change = false

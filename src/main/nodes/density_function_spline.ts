@@ -29,19 +29,6 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
         this.splineWidget = this.addCustomWidget<SplineWidget>(new SplineWidget(() => {
             this.has_change = true
         }))
-        this.addProperty("min_value", -1, "number")
-        this.wdgs.min_value = this.addWidget("number", "min_value", -1, (value) => {
-            this.properties.min_value = value
-            this.splineWidget.min_value = value
-            this.has_change = true
-        }, { min: -1000000, max: 1000000})
-        this.addProperty("max_value", 1, "number")
-        this.wdgs.max_value = this.addWidget("number", "max_value", 1, (value) => {
-            this.properties.max_value = value
-            this.splineWidget.max_value = value
-            this.has_change = true
-        }, { min: -1000000, max: 1000000})
-
         this.title = "spline"
         this.color = "#330000"
     }
@@ -76,18 +63,19 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
         const error = (input === undefined || input.error)
 
         if (this.df === undefined || this.has_change || input.changed){
-            this.df = (input && input.df !== undefined) ? new PersistentCacheDensityFunction(GraphManager.visitor.map(new DensityFunction.Spline(
-                new CubicSpline.MultiPoint<DensityFunction.Context>(
-                    input.df, this.splineWidget.value.locations, this.splineWidget.value.values as CubicSpline.Constant[], this.splineWidget.value.derivatives),
-                this.properties.min_value,
-                this.properties.max_value)))
-            : DensityFunction.Constant.ZERO
+            if (input && input.df){
+                const cubicSpline = new CubicSpline.MultiPoint<DensityFunction.Context>(
+                    input.df, this.splineWidget.value.locations, this.splineWidget.value.values as CubicSpline.Constant[], this.splineWidget.value.derivatives)
+                cubicSpline.calculateMinMax()
+                this.df = new PersistentCacheDensityFunction(GraphManager.visitor.map(new DensityFunction.Spline(cubicSpline)))
+            }
+            else {
+                this.df = DensityFunction.Constant.ZERO
+            }
         }
         this.setOutputData(0, {
             json: {
                 type: "minecraft:spline",
-                min_value: this.properties.min_value,
-                max_value: this.properties.max_value,
                 spline: {
                     coordinate: (Array.isArray(input.json)) ? input.json[0] : input.json,
                     points: points,
@@ -110,6 +98,10 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
         })
 
         this.has_change = false
+    }
+
+    computeSize(): [number, number]{
+        return [250, 280]
     }
 }
 

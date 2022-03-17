@@ -12,8 +12,8 @@ export class DatapackManager {
     static vanilla_datapack: Datapack
     static noise_settings: Map<string, NoiseSettings> = new Map()
 
-    static async init() {
-        this.vanilla_datapack = await ZipDatapack.fromUrl("./data/vanilla_datapack_1_18_2.zip")
+    static async init(version: string) {
+        this.vanilla_datapack = await ZipDatapack.fromUrl(`./data/vanilla_datapack_${version}.zip`)
         this.datapack = new CompositeDatapack([this.vanilla_datapack])
         await this.reload()
     }
