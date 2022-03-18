@@ -195,7 +195,15 @@ export class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>>{
                 } else if (pos[0] > this.widged_width + 20){
                     this.startExpand("right")
                 } else {
-                    this.stopExpand()
+                    this.stopExpand("horizontal")
+                }
+
+                if (pos[1] < this.widget_posy){
+                    this.startExpand("up")
+                } else if (pos[1] > this.widget_posy + this.widged_width){
+                    this.startExpand("down")
+                } else {
+                    this.stopExpand("vertical")
                 }
 
                 const location = Math.clamp(this.posToInput(pos[0], this.widged_width), this.min_input, this.max_input)
@@ -240,10 +248,11 @@ export class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>>{
         return [width, width-20+15];
     }
 
-    private expand_timer: NodeJS.Timer = undefined
-    private startExpand(direction: "left"|"right"){
-        if (!this.expand_timer){
-                this.expand_timer = setInterval(() => {
+    private expand_timer_vertical: NodeJS.Timer = undefined
+    private expand_timer_horizontal: NodeJS.Timer = undefined
+    private startExpand(direction: "left"|"right"|"up"|"down"){
+        if ((direction === "left" || direction === "right") && !this.expand_timer_horizontal){
+                this.expand_timer_horizontal = setInterval(() => {
                     if (direction === "left"){
                         this.min_input -= 0.02
                         this.value.locations[this.dragging_id] = this.min_input
@@ -253,13 +262,28 @@ export class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>>{
                     }
                     this.node?.setDirtyCanvas(true, false)
                 }, 20)
-        }
+        } else if ((direction === "up" || direction === "down") && !this.expand_timer_vertical){
+            this.expand_timer_vertical = setInterval(() => {
+                if (direction === "down"){
+                    this.min_value -= 0.02
+                    this.value.values[this.dragging_id] = new CubicSpline.Constant(this.min_value)
+                } else {
+                    this.max_value += 0.02
+                    this.value.values[this.dragging_id] = new CubicSpline.Constant(this.max_value)
+                }
+                this.node?.setDirtyCanvas(true, false)
+            }, 20)
+    }
     }
 
-    private stopExpand(){
-        if (this.expand_timer){
-            clearInterval(this.expand_timer)
-            this.expand_timer = undefined
+    private stopExpand(direction?: "vertical" | "horizontal"){
+        if (this.expand_timer_vertical && (direction ?? "vertical") == "vertical"){
+            clearInterval(this.expand_timer_vertical)
+            this.expand_timer_vertical = undefined
+        }
+        if (this.expand_timer_horizontal && (direction ?? "horizontal") == "horizontal"){
+            clearInterval(this.expand_timer_horizontal)
+            this.expand_timer_horizontal = undefined
         }
     }
 
@@ -276,6 +300,18 @@ export class SplineWidget implements IWidget<CubicSpline.MultiPoint<number>>{
                     this.max_input -= 0.02
                     changed = true
                 }
+
+
+                if (this.min_value < Math.min(...this.value.values.map(v => v.compute(0))) - 0.3){
+                    this.min_value += 0.02
+                    changed = true
+                }
+
+                if (this.max_value > Math.max(...this.value.values.map(v => v.compute(0))) + 0.3){
+                    this.max_value -= 0.02
+                    changed = true
+                }
+
                 if (!changed){
                     this.stopShrink()
                 } else {
