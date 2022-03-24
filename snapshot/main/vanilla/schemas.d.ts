@@ -9,6 +9,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -32,6 +35,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -55,6 +61,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -78,6 +87,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -101,6 +113,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -124,6 +139,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -147,6 +165,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -170,6 +191,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -193,6 +217,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -216,6 +243,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -239,6 +269,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -262,6 +295,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -285,6 +321,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -308,6 +347,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -331,6 +373,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -354,6 +399,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -377,6 +425,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -400,6 +451,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -423,6 +477,9 @@ export declare const schemas: Map<string, {
     input?: undefined;
     min?: undefined;
     max?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -437,6 +494,11 @@ export declare const schemas: Map<string, {
     to_value?: undefined;
 } | {
     group: string;
+    xz_scale: string;
+    y_scale: string;
+    xz_factor: string;
+    y_factor: string;
+    smear_scale_multiplier: string;
     argument?: undefined;
     argument1?: undefined;
     argument2?: undefined;
@@ -444,8 +506,6 @@ export declare const schemas: Map<string, {
     min?: undefined;
     max?: undefined;
     noise?: undefined;
-    xz_scale?: undefined;
-    y_scale?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -469,6 +529,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -496,6 +559,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     shift_x?: undefined;
     shift_y?: undefined;
     shift_z?: undefined;
@@ -515,6 +581,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -538,6 +607,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -561,6 +633,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -587,6 +662,9 @@ export declare const schemas: Map<string, {
     input?: undefined;
     min?: undefined;
     max?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -607,29 +685,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
-    min_inclusive?: undefined;
-    max_exclusive?: undefined;
-    when_in_range?: undefined;
-    when_out_of_range?: undefined;
-    shift_x?: undefined;
-    shift_y?: undefined;
-    shift_z?: undefined;
-    rarity_value_mapper?: undefined;
-    from_y?: undefined;
-    to_y?: undefined;
-    from_value?: undefined;
-    to_value?: undefined;
-} | {
-    group: string;
-    argument: string;
-    argument1?: undefined;
-    argument2?: undefined;
-    input?: undefined;
-    min?: undefined;
-    max?: undefined;
-    noise?: undefined;
-    xz_scale?: undefined;
-    y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -653,6 +711,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -677,6 +738,9 @@ export declare const schemas: Map<string, {
     max?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
@@ -703,6 +767,9 @@ export declare const schemas: Map<string, {
     noise?: undefined;
     xz_scale?: undefined;
     y_scale?: undefined;
+    xz_factor?: undefined;
+    y_factor?: undefined;
+    smear_scale_multiplier?: undefined;
     min_inclusive?: undefined;
     max_exclusive?: undefined;
     when_in_range?: undefined;
