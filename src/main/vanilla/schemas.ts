@@ -81,6 +81,11 @@ export const schemas = new Map(Object.entries({
     },
     "old_blended_noise": {
         group: "input",
+        xz_scale: "number",
+        y_scale: "number",
+        xz_factor: "number",
+        y_factor: "number",
+        smear_scale_multiplier: "number"
     },
     'quarter_negative': {
         group: "math",
@@ -114,10 +119,6 @@ export const schemas = new Map(Object.entries({
         noise: "noise",
         xz_scale: "number",
         y_scale: "number",
-    },
-    'slide': {
-        group: "extra",
-        argument: "densityFunction",
     },
     'square': {
         group: "math",
