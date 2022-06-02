@@ -7,7 +7,7 @@
     "build": "webpack",
     "watch": "webpack watch",
     "start": "webpack serve",
-    "deploy": "gh-pages -d dist -e ./snapshot/"
+    "deploy": "gh-pages -d dist -e ./1_19/"
   },
   "keywords": [],
   "author": "Jochen Jacobs",
