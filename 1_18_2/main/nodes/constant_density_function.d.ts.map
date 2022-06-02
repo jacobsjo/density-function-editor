@@ -1,0 +1,1 @@
+{"version":3,"file":"constant_density_function.d.ts","sourceRoot":"","sources":["../../../src/main/nodes/constant_density_function.ts"],"names":[],"mappings":"AAIA,OAAO,EAAE,eAAe,EAAE,MAAM,mBAAmB,CAAC;AAEpD,qBAAa,2BAA4B,SAAQ,eAAe;IAC5D,MAAM,CAAC,KAAK,SAAa;IAEzB,OAAO,CAAC,IAAI,CAAS;IACrB,OAAO,CAAC,UAAU,CAAiB;IAEnC,oBAAoB,UAAO;;IAcpB,aAAa;IAIpB,QAAQ;IAOR,SAAS;CAqBZ"}
