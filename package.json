@@ -26,7 +26,7 @@
   "dependencies": {
     "buffer": "^6.0.3",
     "comment-json": "4.2.2",
-    "deepslate": "0.9.0-beta.10",
+    "deepslate": "0.9.0",
     "litegraph.js": "^0.7.10",
     "mc-datapack-loader": "file://",
     "toastr": "^2.1.4"
