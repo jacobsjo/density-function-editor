@@ -6,8 +6,8 @@ export declare class DensityFunctionNode extends LGraphNodeFixed {
     private wdgs;
     private noiseWdgs;
     private has_change;
-    private df;
-    warning: Warning;
+    private df?;
+    warning?: Warning;
     allowMultipleOutputs: boolean;
     constructor(name: string, args: Map<string, string>);
     updateWidgets(): void;

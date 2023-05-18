@@ -13,11 +13,11 @@ export declare class GraphManager {
         [key: string]: ConstantDensityFunctionNode[];
     };
     static has_change: boolean;
-    static id: string;
+    static id?: string;
     static oldJson: unknown;
     static noiseSettings: Identifier;
     static visitor: DensityFunction.Visitor;
-    private static currentLink;
+    private static currentLink?;
     private static preview_canvas;
     private static preview_id;
     private static preview_size;

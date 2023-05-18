@@ -24,11 +24,11 @@ export declare class SplineWidget implements IWidget<CubicSpline.MultiPoint<numb
     private outputToPos;
     mouse(event: MouseEvent, pos: Vector2, node: LGraphNode): boolean;
     computeSize(width: number): [number, number];
-    private expand_timer_vertical;
-    private expand_timer_horizontal;
+    private expand_timer_vertical?;
+    private expand_timer_horizontal?;
     private startExpand;
     private stopExpand;
-    private shrink_timer;
+    private shrink_timer?;
     private startShrink;
     private stopShrink;
 }

@@ -6,7 +6,7 @@ export declare abstract class Warning {
     abstract getDescription(): string;
 }
 export declare namespace Warning {
-    function create(df: DensityFunction): Warning;
+    function create(df: DensityFunction): Warning | undefined;
     class NoWarning extends Warning {
         getWarning(): string;
         getDescription(): string;

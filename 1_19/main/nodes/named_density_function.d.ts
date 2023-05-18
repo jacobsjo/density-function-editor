@@ -3,7 +3,7 @@ export declare class NamedDensityFunctionNode extends LGraphNodeFixed {
     static title: string;
     private wdgt;
     private has_change;
-    private df;
+    private df?;
     allowMultipleOutputs: boolean;
     constructor();
     updateWidgets(): void;

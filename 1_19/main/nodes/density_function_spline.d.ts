@@ -5,7 +5,7 @@ export declare class SplineDensityFunctionNode extends LGraphNodeFixed {
     private wdgs;
     splineWidget: SplineWidget;
     private has_change;
-    private df;
+    private df?;
     allowMultipleOutputs: boolean;
     constructor();
     updateWidgets(): void;
