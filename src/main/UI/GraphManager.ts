@@ -1,5 +1,5 @@
-import { CubicSpline, DensityFunction, Identifier, NoiseRouter, Noises, NoiseSettings, XoroshiroRandom } from "deepslate";
-import { LiteGraph, LGraph, LGraphCanvas, LGraphNode, IContextMenuOptions, LLink } from "litegraph.js";
+import { CubicSpline, DensityFunction, Identifier, NoiseRouter, NoiseSettings, RandomState, XoroshiroRandom } from "deepslate";
+import { LiteGraph, LGraph, LGraphCanvas, LGraphNode, LLink } from "litegraph.js";
 import { DatapackManager } from "../DatapackManager";
 import { ConstantDensityFunctionNode } from "../nodes/constant_density_function";
 import { DensityFunctionNode } from "../nodes/density_function";
@@ -26,14 +26,14 @@ export class GraphManager {
 
     static has_change: boolean = false
 
-    static id: string
+    static id?: string
 
     static oldJson: unknown = {}
 
     static noiseSettings: Identifier
     static visitor: DensityFunction.Visitor
 
-    private static currentLink: LLink = undefined
+    private static currentLink?: LLink = undefined
     private static preview_canvas: HTMLCanvasElement
 
     private static preview_id: number = 2
@@ -63,7 +63,7 @@ export class GraphManager {
 
             const pos = (link as any)._pos;
             const data = (link as any).data;
-            const preview_mode: PreviewMode = new (PreviewMode.PREVIEW_MODES[this.preview_id])(NoiseSettings.cellWidth(DatapackManager.noise_settings.get(this.noiseSettings.toString())))
+            const preview_mode: PreviewMode = new (PreviewMode.PREVIEW_MODES[this.preview_id])(NoiseSettings.cellWidth(DatapackManager.noise_settings.get(this.noiseSettings.toString())!.noise))
 
             if (data === undefined || data.df === undefined) {
                 return
@@ -100,7 +100,7 @@ export class GraphManager {
                 var min = Infinity
                 var max = -Infinity
 
-                const pixels = []
+                const pixels: number[] = []
 
                 try {
                     for (var px = 0; px < this.preview_size; px++) {
@@ -132,7 +132,7 @@ export class GraphManager {
 
                 this.preview_canvas.width = this.preview_size
                 this.preview_canvas.height = this.preview_size
-                const preview_ctx = this.preview_canvas.getContext("2d")
+                const preview_ctx = this.preview_canvas.getContext("2d")!
 
                 const preview_data = preview_ctx.createImageData(this.preview_size, this.preview_size)
 
@@ -202,7 +202,8 @@ export class GraphManager {
 
     static setNoiseSettings(ns: Identifier) {
         this.noiseSettings = ns
-        this.visitor = new NoiseRouter.Visitor(XoroshiroRandom.create(BigInt(0)).forkPositional(), DatapackManager.noise_settings.get(ns.toString()))
+        const randomState = new RandomState(DatapackManager.noise_settings.get(ns.toString())!, BigInt(0))
+        this.visitor = randomState.createVisitor(DatapackManager.noise_settings.get(ns.toString())!.noise, false)
     }
 
     static hasChanged() {
@@ -257,7 +258,7 @@ export class GraphManager {
 
     static loadJSON(json: any, id?: string, relayout: boolean = false): boolean {
         if (this.hasChanged() && !confirm("You have unsaved changes. Continue?")) {
-            return
+            return false
         }
 
         this.id = id
@@ -355,14 +356,14 @@ export class GraphManager {
             this.constant_nodes[json].push(node as ConstantDensityFunctionNode)
             return [node, pos[1] + 150]
         } else if (typeof json === "object"){
-            var fixed_pos: [number, number] = undefined
+            var fixed_pos: [number, number] | undefined = undefined
             var collapsed: boolean = false
             if (!relayout){
                 const comment_pos = this.handleComments(json[Symbol.for('before:type')])
                 if (comment_pos !== undefined) {
                     fixed_pos = comment_pos.pos
                     collapsed = comment_pos.collapsed ?? false
-                    pos[0] = fixed_pos[0]
+                    pos[0] = fixed_pos![0]
                 }
             }
 
@@ -398,12 +399,9 @@ export class GraphManager {
                 } else {
                     node = LiteGraph.createNode("special/spline") as SplineDensityFunctionNode
 
-                    node.properties.min_value = json.min_value
-                    node.properties.max_value = json.max_value
-
-                    const locations = []
-                    const values = []
-                    const derivatives = []
+                    const locations: number[] = []
+                    const values: CubicSpline.Constant[] = []
+                    const derivatives: number[] = []
                     for (const point of json.spline.points) {
                         locations.push(point.location)
                         values.push(new CubicSpline.Constant(point.value))
@@ -413,6 +411,9 @@ export class GraphManager {
                     ;(node as SplineDensityFunctionNode).splineWidget.value = new CubicSpline.MultiPoint<number>(IdentityNumberFunction, locations, values, derivatives);
                     ;(node as SplineDensityFunctionNode).splineWidget.min_input = locations[0] - 0.1
                     ;(node as SplineDensityFunctionNode).splineWidget.max_input = locations[locations.length - 1] + 0.1
+
+                    ;(node as SplineDensityFunctionNode).splineWidget.min_value = Math.min(...values.map(v => v.compute())) - 0.1
+                    ;(node as SplineDensityFunctionNode).splineWidget.max_value = Math.max(...values.map(v => v.compute())) + 0.1
 
                     node.updateWidgets()
 
@@ -433,7 +434,7 @@ export class GraphManager {
                 }
             } else if (json.type) {
                 const type = json.type.replace("minecraft:", "")
-                node = LiteGraph.createNode(schemas.get(type).group + "/" + type) as DensityFunctionNode
+                node = LiteGraph.createNode(schemas.get(type)!.group + "/" + type) as DensityFunctionNode
                 var y = pos[1]
                 if (node) {
                     for (const property in node.properties) {

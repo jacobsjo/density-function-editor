@@ -17,7 +17,7 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
     private wdgs: {[key: string]: IWidget} = {}
     public splineWidget: SplineWidget
     private has_change: boolean = false
-    private df: DensityFunction = undefined
+    private df?: DensityFunction = undefined
 
     allowMultipleOutputs = false
 
@@ -34,10 +34,7 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
     }
 
     public updateWidgets(){
-        this.wdgs.min_value.value = this.properties.min_value
-        this.wdgs.max_value.value = this.properties.max_value
-        this.splineWidget.min_value = this.properties.min_value
-        this.splineWidget.max_value = this.properties.max_value
+
     }
 
     onConnectionsChange(){
@@ -47,7 +44,7 @@ export class SplineDensityFunctionNode extends LGraphNodeFixed{
 
     onExecute(){
 
-        const points = []
+        const points: any[] = []
         for (var i = 0 ; i < this.splineWidget.value.locations.length ; i++){
             points.push({
                 location: this.splineWidget.value.locations[i],

@@ -11,7 +11,7 @@ export class NamedDensityFunctionNode extends LGraphNodeFixed {
 
     private wdgt: IWidget
     private has_change: boolean
-    private df: DensityFunction = undefined
+    private df?: DensityFunction = undefined
 
     allowMultipleOutputs = true
 

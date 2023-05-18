@@ -44,6 +44,23 @@ body {
     cursor: default;
 }
 
+#menu .menu-fineprint{
+    margin-left: auto;
+    margin-right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+#menu .menu-fineprint a{
+    color: gray;
+    text-decoration: underline;
+    line-height: 25pt;
+}
+
+#menu .menu-fineprint a:hover{
+    color: lightgray
+}
+
 #mycanvas {
     padding: 0;
     margin: 0;

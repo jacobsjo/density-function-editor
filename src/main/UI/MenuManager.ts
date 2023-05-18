@@ -11,9 +11,9 @@ export class MenuManager {
     static save_button: HTMLElement
 
     static addHandlers() {
-        this.save_button = document.getElementById("menu-button-save")
+        this.save_button = document.getElementById("menu-button-save")!
 
-        document.getElementById("menu-button-new").onclick = async () => {
+        document.getElementById("menu-button-new")!.onclick = async () => {
             if (DatapackManager.datapack !== undefined) {
                 GraphManager.clear()
             } else {
@@ -21,7 +21,7 @@ export class MenuManager {
             }
         }
 
-        document.getElementById("menu-button-open-datapack").onclick = async () => {
+        document.getElementById("menu-button-open-datapack")!.onclick = async () => {
             var datapack: Datapack
 
             if ("showDirectoryPicker" in window) {
@@ -71,7 +71,7 @@ export class MenuManager {
 
         }
 
-        document.getElementById("menu-button-open-file").onclick = async () => {
+        document.getElementById("menu-button-open-file")!.onclick = async () => {
             if ("showOpenFilePicker" in window) {
                 const [fileHandle] = await window.showOpenFilePicker({
                     types: [
@@ -93,13 +93,13 @@ export class MenuManager {
                 input.accept = '.json'
 
                 input.onchange = (evt) => {
-                    const file = (evt.target as HTMLInputElement).files[0]
+                    const file = (evt.target as HTMLInputElement).files![0]
 
                     const reader = new FileReader();
                     reader.readAsText(file, 'UTF-8')
 
                     reader.onload = (evt: ProgressEvent<FileReader>) => {
-                        const jsonString = evt.target.result as string
+                        const jsonString = evt.target!.result as string
                         load(jsonString)
                     }
                 }
@@ -109,7 +109,7 @@ export class MenuManager {
 
         }
 
-        document.getElementById("menu-button-save-as").onclick = async () => {
+        document.getElementById("menu-button-save-as")!.onclick = async () => {
             GraphManager.id = (await this.save(undefined, GraphManager.id)) ?? GraphManager.id
         }
 
@@ -117,13 +117,13 @@ export class MenuManager {
             await this.save(GraphManager.id)
         }
 
-        document.getElementById("menu-button-reload").onclick = async () => {
+        document.getElementById("menu-button-reload")!.onclick = async () => {
             await DatapackManager.reload()
             GraphManager.reload()
             toastr.success("Reload successfull")
         }
 
-        document.getElementById("menu-button-autolayout").onclick = () => {
+        document.getElementById("menu-button-autolayout")!.onclick = () => {
             if (confirm("This will delete all unconnected nodes. Continue?")){
                 GraphManager.autoLayout()
             }
@@ -131,7 +131,7 @@ export class MenuManager {
 
     }
 
-    static async save(id?: string, suggested_id?: string): Promise<string> {
+    static async save(id?: string, suggested_id?: string): Promise<string | undefined> {
         if (DatapackManager.datapack.canSave()) {
             DatapackManager.datapack.prepareSave()
         }
@@ -155,7 +155,7 @@ export class MenuManager {
                     return undefined
                 }
             }
-            if (await DatapackManager.datapackSave(output.json, id)) {
+            if (await DatapackManager.datapackSave(output.json, Identifier.parse(id))) {
                 GraphManager.setSaved()
                 WorldgenRegistries.DENSITY_FUNCTION.register(Identifier.parse(id), DensityFunction.fromJson(output.json)) //create new DensityFunction without all the caching...
             } else {

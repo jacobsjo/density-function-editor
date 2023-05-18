@@ -20,8 +20,8 @@ export class DensityFunctionNode extends LGraphNodeFixed {
     private noiseWdgs: IWidget[] = []
 
     private has_change: boolean = false
-    private df: DensityFunction = undefined
-    public warning: Warning = undefined
+    private df?: DensityFunction = undefined
+    public warning?: Warning = undefined
 
     allowMultipleOutputs = false
 

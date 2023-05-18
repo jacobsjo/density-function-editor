@@ -13,9 +13,9 @@ export abstract class Warning{
 
 export namespace Warning{
 
-    export function create(df: DensityFunction): Warning{
+    export function create(df: DensityFunction): Warning | undefined{
         if (df instanceof PersistentCacheDensityFunction){
-            df = df.getWrapped()
+            df = df.getWrapped()!
         }
         if (df === undefined){
             return undefined

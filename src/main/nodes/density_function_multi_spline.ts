@@ -39,8 +39,8 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
                     input_name = j
 
                 if (this.input_map.has(input_name)){
-                    this.input_map.get(input_name).is_multiple = true
-                    return this.input_map.get(input_name).function
+                    this.input_map.get(input_name)!.is_multiple = true
+                    return this.input_map.get(input_name)!.function
                 } else {
                     const input_function = new PassthroghDensityFunction()
                     this.input_map.set(input_name, {
@@ -77,12 +77,12 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
         outputNode: LGraphNode,
         outputIndex: number
     ): boolean {
-        if (this.input_map.get(this.getInputInfo(inputIndex).name).is_multiple && (outputNode instanceof LGraphNodeFixed) && !(outputNode.allowMultipleOutputs)){
+        if (this.input_map.get(this.getInputInfo(inputIndex)!.name)!.is_multiple && (outputNode instanceof LGraphNodeFixed) && !(outputNode.allowMultipleOutputs)){
             toastr.error("You can only connect named density functions or constants here", "This input is used multiple times by the spline")
             return false
         }
 
-        return super.onConnectInput(inputIndex, outputType, outputSlot, outputNode, outputIndex)
+        return super.onConnectInput!(inputIndex, outputType, outputSlot, outputNode, outputIndex)
     }
 
 
@@ -126,7 +126,7 @@ export class MultiSplineDensityFunctionNode extends LGraphNodeFixed{
                     json: {}, error: true, changed: false, df: DensityFunction.Constant.ZERO
                 }
                 
-                const points = []
+                const points: any[] = []
                 for (var i = 0 ; i < spline.locations.length ; i++){
                     points.push({
                         location: spline.locations[i],

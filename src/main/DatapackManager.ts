@@ -1,4 +1,4 @@
-import { DensityFunction, Identifier, NoiseParameters, NoiseSettings, WorldgenRegistries } from "deepslate";
+import { DensityFunction, Identifier, NoiseGeneratorSettings, NoiseParameters, NoiseSettings, WorldgenRegistries } from "deepslate";
 import { IContextMenuItem } from "litegraph.js";
 import { CompositeDatapack, Datapack, ZipDatapack } from "mc-datapack-loader";
 import { GraphManager } from "./UI/GraphManager";
@@ -10,7 +10,7 @@ import * as toastr from "toastr";
 export class DatapackManager {
     static datapack: CompositeDatapack
     static vanilla_datapack: Datapack
-    static noise_settings: Map<string, NoiseSettings> = new Map()
+    static noise_settings: Map<string, NoiseGeneratorSettings> = new Map()
 
     static async init(version: string) {
         this.vanilla_datapack = await ZipDatapack.fromUrl(`./data/vanilla_datapack_${version}.zip`)
@@ -28,7 +28,7 @@ export class DatapackManager {
         for (const df of await this.datapack.getIds("worldgen/density_function")) {
             try{
                 const json = await this.datapack.get("worldgen/density_function", df)
-                WorldgenRegistries.DENSITY_FUNCTION.register(Identifier.parse(df), DensityFunction.fromJson(json))
+                WorldgenRegistries.DENSITY_FUNCTION.register(df, DensityFunction.fromJson(json))
             } catch (e) {
                 toastr.error(e, `Could not load density function ${df}`)
             }
@@ -38,7 +38,7 @@ export class DatapackManager {
         for (const n of await this.datapack.getIds("worldgen/noise")) {
             try{
                 const json = await this.datapack.get("worldgen/noise", n)
-                WorldgenRegistries.NOISE.register(Identifier.parse(n), NoiseParameters.fromJson(json))
+                WorldgenRegistries.NOISE.register(n, NoiseParameters.fromJson(json))
             } catch (e) {
                 toastr.error(e, `Could not load noise ${n}`)
             }
@@ -48,7 +48,7 @@ export class DatapackManager {
         for (const ns of await this.datapack.getIds("worldgen/noise_settings")) {
             try{
                 const json: any = await this.datapack.get("worldgen/noise_settings", ns)
-                this.noise_settings.set(ns, NoiseSettings.fromJson(json.noise))
+                this.noise_settings.set(ns.toString(), NoiseGeneratorSettings.fromJson(json))
             } catch (e) {
                 toastr.error(e, `Could not load noise settings ${ns}`)
             }
@@ -78,7 +78,7 @@ export class DatapackManager {
                                 callback: () => {
                                     var ns = this.tryGetNoiseSettingsFromDensityFunction(df.toString())
                                     if (Array.isArray(ns)) {
-                                        ns = prompt("Which noise settings should be used?", ns[0])
+                                        ns = prompt("Which noise settings should be used?", ns[0]) ?? ns[0]
                                         if (!this.noise_settings.has(ns)) {
                                             toastr.warning(`using minecraft:overworld`, `Noise settings unknown`)
                                             ns = "minecraft:overworld"
@@ -87,7 +87,7 @@ export class DatapackManager {
                                         toastr.info(`using noise settings ${ns}`)
                                     }
                                     GraphManager.setNoiseSettings(Identifier.parse(ns))
-                                    this.datapack.get("worldgen/density_function", df.toString()).then(json => GraphManager.loadJSON(json, df.toString()))
+                                    this.datapack.get("worldgen/density_function", df).then(json => GraphManager.loadJSON(json, df.toString()))
                                 }
                             }
                         })
@@ -109,7 +109,7 @@ export class DatapackManager {
                                             title: field,
                                             has_submenu: false,
                                             callback: () => {
-                                                this.datapack.get("worldgen/noise_settings", ns).then((json: any) => {
+                                                this.datapack.get("worldgen/noise_settings", Identifier.parse(ns)).then((json: any) => {
                                                     GraphManager.setNoiseSettings(Identifier.parse(ns))
                                                     GraphManager.loadJSON(json.noise_router[field], ns + "/" + field)
                                                 })
@@ -154,16 +154,16 @@ export class DatapackManager {
         return []
     }
 
-    static async datapackSave(json: any, id: string) {
+    static async datapackSave(json: any, id: Identifier) {
         if (!this.datapack.canSave()) {
             return false
         } else {
            
-            if (!(await this.datapack.save("worldgen/density_function", id, json))) {
+            if (!(await this.datapack.save!("worldgen/density_function", id, json))) {
                 return false
             }
 
-            toastr.success(id, "Denisty function saved")
+            toastr.success(id.toString(), "Denisty function saved")
 
             return true
         }
